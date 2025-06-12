@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import ChatMessage from '../components/ChatMessage';
 import ChatInput from '../components/ChatInput';
@@ -9,6 +8,7 @@ interface ChatHistoryItem {
   type: 'user' | 'agent' | 'job_spec';
   message: string;
   timestamp: Date;
+  file?: File;
 }
 
 interface ProcessingStep {
@@ -33,12 +33,17 @@ const Index = () => {
     scrollToBottom();
   }, [chatHistory, isProcessing, processingSteps]);
 
-  const simulateAgentProcess = async (userMessage: string) => {
+  const simulateAgentProcess = async (userMessage: string, hasFile: boolean = false) => {
     setIsProcessing(true);
     setProcessingSteps([]);
 
     // Simulate real-time agent steps
-    const steps = [
+    const steps = hasFile ? [
+      { text: '📄 Processing uploaded file...', delay: 1000 },
+      { text: '🧠 Analyzing content...', delay: 2000 },
+      { text: '🔍 Searching for industry standards...', delay: 3000 },
+      { text: '✍️ Crafting job specification...', delay: 4000 },
+    ] : [
       { text: '🧠 Analyzing your request...', delay: 1000 },
       { text: '🔍 Searching for industry standards...', delay: 2000 },
       { text: '✍️ Crafting job specification...', delay: 3000 },
@@ -94,18 +99,27 @@ Ready to take the next step in your career? We'd love to hear from you!`;
     setChatHistory(prev => [...prev, newJobSpec]);
   };
 
-  const handleSendMessage = async (message: string, audioBlob?: Blob) => {
+  const handleSendMessage = async (message: string, audioBlob?: Blob, file?: File) => {
+    let displayMessage = message;
+    
+    if (audioBlob) {
+      displayMessage = 'Voice message (transcribed): ' + message;
+    } else if (file) {
+      displayMessage = `File uploaded: ${file.name}`;
+    }
+
     const newMessage: ChatHistoryItem = {
       id: `user-${Date.now()}`,
       type: 'user',
-      message: audioBlob ? 'Voice message (transcribed): ' + message : message,
+      message: displayMessage,
       timestamp: new Date(),
+      file,
     };
 
     setChatHistory(prev => [...prev, newMessage]);
 
     // Simulate processing
-    await simulateAgentProcess(message);
+    await simulateAgentProcess(message, !!file);
   };
 
   return (
@@ -138,7 +152,7 @@ Ready to take the next step in your career? We'd love to hear from you!`;
                     Let's create your job specification
                   </h2>
                   <p className="text-muted-foreground max-w-md">
-                    Simply describe the role or provide a job title to get started. I'll generate a complete, professional job spec for you.
+                    Simply describe the role, upload a job description file, or provide a job title to get started. I'll generate a complete, professional job spec for you.
                   </p>
                 </div>
               </div>

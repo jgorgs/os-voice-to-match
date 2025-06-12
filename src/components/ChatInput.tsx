@@ -1,21 +1,24 @@
 
-import React, { useState } from 'react';
-import { Send, Mic } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Send, Mic, Paperclip } from 'lucide-react';
 import VoiceRecorder from './VoiceRecorder';
 
 interface ChatInputProps {
-  onSendMessage: (message: string, audioBlob?: Blob) => void;
+  onSendMessage: (message: string, audioBlob?: Blob, file?: File) => void;
   disabled?: boolean;
 }
 
 const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }) => {
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = () => {
-    if (inputText.trim() && !disabled) {
-      onSendMessage(inputText.trim());
+    if ((inputText.trim() || uploadedFile) && !disabled) {
+      onSendMessage(inputText.trim() || 'File uploaded', undefined, uploadedFile || undefined);
       setInputText('');
+      setUploadedFile(null);
     }
   };
 
@@ -30,13 +33,75 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
     onSendMessage('Voice message', audioBlob);
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setUploadedFile(file);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const isFileAudio = uploadedFile?.type.startsWith('audio/');
+  const canSend = (inputText.trim() || uploadedFile) && !disabled && !isRecording;
+
   return (
     <div className="w-full">
+      {uploadedFile && (
+        <div className="mb-3 p-3 bg-muted border border-border rounded-lg flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
+              {isFileAudio ? '🎵' : '📄'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">
+                {uploadedFile.name}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={removeFile}
+            className="text-muted-foreground hover:text-foreground transition-colors p-1"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+      
       <div className="relative flex items-center bg-background border border-border rounded-full shadow-sm hover:shadow-md transition-shadow duration-200 p-2">
         <VoiceRecorder
           onRecordingComplete={handleRecordingComplete}
           isRecording={isRecording}
           setIsRecording={setIsRecording}
+        />
+        
+        <button
+          onClick={handleUploadClick}
+          disabled={disabled || isRecording}
+          className="p-3 rounded-full transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
+          title="Upload file"
+        >
+          <Paperclip size={16} />
+        </button>
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={handleFileUpload}
+          accept="audio/*,.pdf,.doc,.docx,.txt"
+          className="hidden"
         />
         
         <input
@@ -51,9 +116,9 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
         
         <button
           onClick={handleSend}
-          disabled={!inputText.trim() || disabled || isRecording}
+          disabled={!canSend}
           className={`p-3 rounded-full transition-all duration-200 ${
-            inputText.trim() && !disabled && !isRecording
+            canSend
               ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm'
               : 'bg-muted text-muted-foreground cursor-not-allowed'
           }`}
@@ -67,6 +132,8 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
           <span className="text-sm text-muted-foreground">Recording...</span>
         </div>
       )}
+      
+      <input type="hidden" />
     </div>
   );
 };
