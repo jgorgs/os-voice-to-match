@@ -33,13 +33,6 @@ const Index = () => {
     scrollToBottom();
   }, [chatHistory, isProcessing, processingSteps]);
 
-  const mapMessageToStep = (message: string): string => {
-    if (message.includes('transcribe')) return '✅ Transcribing audio...';
-    if (message.includes('generate_job_spec')) return '🧠 Generating job spec...';
-    if (message.includes('tavily_search')) return '🔍 Searching for supporting data...';
-    return message;
-  };
-
   const simulateAgentProcess = async (userMessage: string) => {
     setIsProcessing(true);
     setProcessingSteps([]);
