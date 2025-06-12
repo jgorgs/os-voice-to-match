@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Send } from 'lucide-react';
+import { Send, Mic } from 'lucide-react';
 import VoiceRecorder from './VoiceRecorder';
 
 interface ChatInputProps {
@@ -31,38 +31,42 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center space-x-3 bg-gray-50 rounded-full px-4 py-2">
-          <VoiceRecorder
-            onRecordingComplete={handleRecordingComplete}
-            isRecording={isRecording}
-            setIsRecording={setIsRecording}
-          />
-          
-          <input
-            type="text"
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Describe the role, or just say the job title..."
-            className="flex-1 bg-transparent border-none outline-none text-gray-800 placeholder-gray-500"
-            disabled={disabled || isRecording}
-          />
-          
-          <button
-            onClick={handleSend}
-            disabled={!inputText.trim() || disabled || isRecording}
-            className={`p-2 rounded-full transition-all duration-200 ${
-              inputText.trim() && !disabled && !isRecording
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-            }`}
-          >
-            <Send size={18} />
-          </button>
-        </div>
+    <div className="w-full">
+      <div className="relative flex items-center bg-background border border-border rounded-full shadow-sm hover:shadow-md transition-shadow duration-200 p-2">
+        <VoiceRecorder
+          onRecordingComplete={handleRecordingComplete}
+          isRecording={isRecording}
+          setIsRecording={setIsRecording}
+        />
+        
+        <input
+          type="text"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Describe the role, or just say the job title..."
+          className="flex-1 bg-transparent border-none outline-none text-foreground placeholder-muted-foreground px-4 py-3 text-sm"
+          disabled={disabled || isRecording}
+        />
+        
+        <button
+          onClick={handleSend}
+          disabled={!inputText.trim() || disabled || isRecording}
+          className={`p-3 rounded-full transition-all duration-200 ${
+            inputText.trim() && !disabled && !isRecording
+              ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm'
+              : 'bg-muted text-muted-foreground cursor-not-allowed'
+          }`}
+        >
+          <Send size={16} />
+        </button>
       </div>
+      
+      {isRecording && (
+        <div className="text-center mt-2">
+          <span className="text-sm text-muted-foreground">Recording...</span>
+        </div>
+      )}
     </div>
   );
 };

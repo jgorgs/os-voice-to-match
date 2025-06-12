@@ -11,9 +11,9 @@ interface ChatMessageProps {
 const ChatMessage: React.FC<ChatMessageProps> = ({ message, isUser, isJobSpec = false }) => {
   if (isJobSpec) {
     return (
-      <div className="flex justify-start mb-6">
-        <div className="max-w-4xl bg-blue-50 border border-blue-200 rounded-2xl p-6 shadow-sm">
-          <div className="prose prose-blue max-w-none">
+      <div className="flex justify-start">
+        <div className="w-full bg-primary/5 border border-primary/20 rounded-xl p-6 shadow-sm">
+          <div className="prose prose-sm max-w-none dark:prose-invert">
             <ReactMarkdown>{message}</ReactMarkdown>
           </div>
         </div>
@@ -22,12 +22,12 @@ const ChatMessage: React.FC<ChatMessageProps> = ({ message, isUser, isJobSpec = 
   }
 
   return (
-    <div className={`flex mb-4 ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-2xl px-4 py-3 rounded-2xl ${
+        className={`max-w-[80%] px-4 py-3 rounded-xl ${
           isUser
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-100 text-gray-800'
+            ? 'bg-primary text-primary-foreground'
+            : 'bg-muted text-foreground'
         }`}
       >
         <p className="text-sm leading-relaxed">{message}</p>

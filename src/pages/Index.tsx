@@ -109,57 +109,63 @@ Ready to take the next step in your career? We'd love to hear from you!`;
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 p-6">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-2xl font-bold text-gray-900">
+      <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+        <div className="container flex h-16 items-center justify-center">
+          <h1 className="text-xl font-semibold text-foreground">
             Outscout AI Job Spec Generator
           </h1>
-          <p className="text-gray-600 mt-1">
-            Describe any role and get a complete job specification in seconds
-          </p>
         </div>
       </header>
 
-      {/* Chat History */}
-      <div 
-        ref={chatContainerRef}
-        className="flex-1 overflow-y-auto px-6 py-6 pb-32"
-      >
-        <div className="max-w-4xl mx-auto">
-          {chatHistory.length === 0 && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl">🚀</span>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col items-center justify-center px-4">
+        <div className="w-full max-w-2xl mx-auto flex flex-col h-full">
+          
+          {/* Chat History Container */}
+          <div 
+            ref={chatContainerRef}
+            className="flex-1 overflow-y-auto py-8 space-y-4 min-h-0"
+          >
+            {chatHistory.length === 0 ? (
+              <div className="flex flex-col items-center justify-center text-center py-12 space-y-4">
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+                  <span className="text-2xl">🚀</span>
+                </div>
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-semibold text-foreground">
+                    Let's create your job specification
+                  </h2>
+                  <p className="text-muted-foreground max-w-md">
+                    Simply describe the role or provide a job title to get started. I'll generate a complete, professional job spec for you.
+                  </p>
+                </div>
               </div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                Let's create your job specification
-              </h2>
-              <p className="text-gray-600">
-                Simply describe the role or provide a job title to get started
-              </p>
-            </div>
-          )}
+            ) : (
+              <>
+                {chatHistory.map((item) => (
+                  <ChatMessage
+                    key={item.id}
+                    message={item.message}
+                    isUser={item.type === 'user'}
+                    isJobSpec={item.type === 'job_spec'}
+                  />
+                ))}
+                {isProcessing && <ThinkingAnimation steps={processingSteps} />}
+              </>
+            )}
+          </div>
 
-          {chatHistory.map((item) => (
-            <ChatMessage
-              key={item.id}
-              message={item.message}
-              isUser={item.type === 'user'}
-              isJobSpec={item.type === 'job_spec'}
+          {/* Input Section - Centered */}
+          <div className="py-6">
+            <ChatInput
+              onSendMessage={handleSendMessage}
+              disabled={isProcessing}
             />
-          ))}
-
-          {isProcessing && <ThinkingAnimation steps={processingSteps} />}
+          </div>
         </div>
       </div>
-
-      {/* Input Bar */}
-      <ChatInput
-        onSendMessage={handleSendMessage}
-        disabled={isProcessing}
-      />
     </div>
   );
 };
