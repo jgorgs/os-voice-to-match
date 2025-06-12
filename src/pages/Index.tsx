@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import ChatMessage from '../components/ChatMessage';
 import ChatInput from '../components/ChatInput';
@@ -128,7 +129,7 @@ Ready to take the next step in your career? We'd love to hear from you!`;
       <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-center">
           <h1 className="text-xl font-semibold text-foreground">
-            Outscout AI Job Spec Generator
+            Voice to Spec by OutScout
           </h1>
         </div>
       </header>
