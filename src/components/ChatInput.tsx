@@ -1,6 +1,6 @@
 
 import React, { useState, useRef } from 'react';
-import { Send, Mic, Paperclip } from 'lucide-react';
+import { Send, Mic, Paperclip, X } from 'lucide-react';
 import VoiceRecorder from './VoiceRecorder';
 
 interface ChatInputProps {
@@ -11,14 +11,24 @@ interface ChatInputProps {
 const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }) => {
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
+  const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSend = () => {
-    if ((inputText.trim() || uploadedFile) && !disabled) {
-      onSendMessage(inputText.trim() || 'File uploaded', undefined, uploadedFile || undefined);
+    if ((inputText.trim() || uploadedFile || recordedAudio) && !disabled) {
+      let message = inputText.trim();
+      
+      if (recordedAudio && !message) {
+        message = 'Voice message';
+      } else if (uploadedFile && !message) {
+        message = 'File uploaded';
+      }
+      
+      onSendMessage(message, recordedAudio || undefined, uploadedFile || undefined);
       setInputText('');
       setUploadedFile(null);
+      setRecordedAudio(null);
     }
   };
 
@@ -30,7 +40,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
   };
 
   const handleRecordingComplete = (audioBlob: Blob) => {
-    onSendMessage('Voice message', audioBlob);
+    setRecordedAudio(audioBlob);
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -51,8 +61,12 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
     }
   };
 
+  const removeRecording = () => {
+    setRecordedAudio(null);
+  };
+
   const isFileAudio = uploadedFile?.type.startsWith('audio/');
-  const canSend = (inputText.trim() || uploadedFile) && !disabled && !isRecording;
+  const canSend = (inputText.trim() || uploadedFile || recordedAudio) && !disabled && !isRecording;
 
   return (
     <div className="w-full">
@@ -75,7 +89,31 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
             onClick={removeFile}
             className="text-muted-foreground hover:text-foreground transition-colors p-1"
           >
-            ✕
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
+      {recordedAudio && (
+        <div className="mb-3 p-3 bg-muted border border-border rounded-lg flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
+              🎤
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground">
+                Voice recording ready
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Audio recorded
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={removeRecording}
+            className="text-muted-foreground hover:text-foreground transition-colors p-1"
+          >
+            <X size={16} />
           </button>
         </div>
       )}
