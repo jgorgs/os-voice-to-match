@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { Play, Pause } from 'lucide-react';
 
@@ -28,28 +27,36 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
-      if (audioContextRef.current) {
+      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
         audioContextRef.current.close();
       }
     };
   }, [audioUrl]);
 
-  const setupAudioContext = () => {
+  const setupAudioContext = async () => {
     if (!audioRef.current || audioContextRef.current) return;
 
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const analyser = audioContext.createAnalyser();
-      const source = audioContext.createMediaElementSource(audioRef.current);
       
-      analyser.fftSize = 128;
+      // Resume context if suspended
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+      
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
       analyser.smoothingTimeConstant = 0.8;
+      
+      const source = audioContext.createMediaElementSource(audioRef.current);
       source.connect(analyser);
       analyser.connect(audioContext.destination);
       
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
       sourceRef.current = source;
+      
+      console.log('Audio context setup complete');
     } catch (error) {
       console.warn('Web Audio API not supported:', error);
     }
@@ -59,7 +66,10 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
     const canvas = canvasRef.current;
     const analyser = analyserRef.current;
     
-    if (!canvas || !analyser) return;
+    if (!canvas || !analyser) {
+      console.log('Missing canvas or analyser');
+      return;
+    }
     
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -80,17 +90,29 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
       const actualBarWidth = barWidth - barSpacing;
       
       for (let i = 0; i < barCount; i++) {
-        const dataIndex = Math.floor((i / barCount) * bufferLength);
-        const barHeight = Math.max(2, (dataArray[dataIndex] / 255) * canvas.height * 0.9);
+        // Use multiple frequency bins per bar for better visualization
+        const startIndex = Math.floor((i / barCount) * bufferLength);
+        const endIndex = Math.floor(((i + 1) / barCount) * bufferLength);
+        
+        // Average the frequency data for this bar
+        let sum = 0;
+        for (let j = startIndex; j < endIndex; j++) {
+          sum += dataArray[j];
+        }
+        const average = sum / (endIndex - startIndex);
+        
+        // Scale the bar height with more sensitivity
+        const barHeight = Math.max(3, (average / 255) * canvas.height * 0.8);
         
         const x = i * barWidth;
         const y = (canvas.height - barHeight) / 2;
         
-        // Create rounded bars with gradient
+        // Create animated gradient based on frequency
+        const intensity = average / 255;
         const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight);
-        gradient.addColorStop(0, 'hsl(var(--primary) / 0.8)');
-        gradient.addColorStop(0.5, 'hsl(var(--primary))');
-        gradient.addColorStop(1, 'hsl(var(--primary) / 0.6)');
+        gradient.addColorStop(0, `hsl(var(--primary) / ${0.3 + intensity * 0.5})`);
+        gradient.addColorStop(0.5, `hsl(var(--primary) / ${0.6 + intensity * 0.4})`);
+        gradient.addColorStop(1, `hsl(var(--primary) / ${0.2 + intensity * 0.3})`);
         
         ctx.fillStyle = gradient;
         ctx.roundRect(x, y, actualBarWidth, barHeight, 2);
@@ -132,20 +154,26 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
   };
 
   const togglePlayback = async () => {
-    if (audioRef.current) {
+    if (!audioRef.current) return;
+
+    try {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
+        // Setup audio context before playing
         if (!audioContextRef.current) {
-          setupAudioContext();
+          await setupAudioContext();
         }
         
+        // Resume context if suspended
         if (audioContextRef.current?.state === 'suspended') {
           await audioContextRef.current.resume();
         }
         
-        audioRef.current.play();
+        await audioRef.current.play();
       }
+    } catch (error) {
+      console.error('Playback error:', error);
     }
   };
 
@@ -163,11 +191,13 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
   };
 
   const handlePlay = () => {
+    console.log('Audio started playing');
     setIsPlaying(true);
     drawWaveform();
   };
   
   const handlePause = () => {
+    console.log('Audio paused');
     setIsPlaying(false);
     drawStaticWaveform();
     if (animationRef.current) {
@@ -176,6 +206,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
   };
   
   const handleEnded = () => {
+    console.log('Audio ended');
     setIsPlaying(false);
     setCurrentTime(0);
     drawStaticWaveform();
