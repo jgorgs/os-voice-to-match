@@ -19,7 +19,18 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+      
+      // Configure MediaRecorder for mp4 format
+      const options = {
+        mimeType: 'audio/mp4'
+      };
+      
+      // Fallback to webm if mp4 is not supported
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'audio/webm';
+      }
+      
+      const mediaRecorder = new MediaRecorder(stream, options);
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
 
@@ -30,7 +41,8 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
       };
 
       mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(chunksRef.current, { type: 'audio/wav' });
+        const mimeType = mediaRecorder.mimeType;
+        const audioBlob = new Blob(chunksRef.current, { type: mimeType });
         onRecordingComplete(audioBlob);
         stream.getTracks().forEach(track => track.stop());
       };
