@@ -108,11 +108,17 @@ Ready to take the next step in your career? We'd love to hear from you!`;
 
     console.log('handleSendMessage called with:', { message, hasAudio: !!audioBlob, hasFile: !!file });
 
-    // Handle audio upload if present
+    // Handle audio upload if present (either recorded or uploaded audio file)
     if (audioBlob) {
-      console.log('Processing audio blob, size:', audioBlob.size);
-      displayMessage = 'Voice message (transcribed): ' + message;
-      audioFilePath = await uploadAudioFile(audioBlob);
+      console.log('Processing audio blob, size:', audioBlob.size, 'type:', audioBlob.type);
+      
+      // Check if this is an uploaded audio file vs recorded audio
+      const originalFileName = file?.name;
+      displayMessage = originalFileName ? 
+        `Audio file uploaded: ${originalFileName}` : 
+        'Voice message recorded';
+      
+      audioFilePath = await uploadAudioFile(audioBlob, originalFileName);
       console.log('Audio upload result:', audioFilePath);
       
       if (!audioFilePath) {
@@ -158,7 +164,7 @@ Ready to take the next step in your career? We'd love to hear from you!`;
     }
 
     // Simulate processing
-    await simulateAgentProcess(message, !!file);
+    await simulateAgentProcess(message, !!file || !!audioBlob);
   };
   return <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}

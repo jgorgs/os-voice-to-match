@@ -1,7 +1,9 @@
+
 import React, { useState, useRef } from 'react';
 import { Send, Mic, Paperclip, X } from 'lucide-react';
 import VoiceRecorder from './VoiceRecorder';
 import AudioPlayer from './AudioPlayer';
+import { uploadAudioFile } from '../utils/audioUpload';
 
 interface ChatInputProps {
   onSendMessage: (message: string, audioBlob?: Blob, file?: File) => void;
@@ -15,17 +17,36 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if ((inputText.trim() || uploadedFile || recordedAudio) && !disabled) {
       let message = inputText.trim();
+      let audioBlob: Blob | undefined = undefined;
+      let fileToProcess: File | undefined = undefined;
       
+      // Handle recorded audio
       if (recordedAudio && !message) {
         message = 'Voice message';
-      } else if (uploadedFile && !message) {
-        message = 'File uploaded';
+        audioBlob = recordedAudio;
       }
       
-      onSendMessage(message, recordedAudio || undefined, uploadedFile || undefined);
+      // Handle uploaded audio files
+      if (uploadedFile && uploadedFile.type.startsWith('audio/')) {
+        if (!message) {
+          message = `Audio file: ${uploadedFile.name}`;
+        }
+        
+        // Convert File to Blob for audio processing
+        audioBlob = new Blob([uploadedFile], { type: uploadedFile.type });
+        console.log('Processing uploaded audio file:', uploadedFile.name, 'Type:', uploadedFile.type);
+      } else if (uploadedFile) {
+        // Handle non-audio files
+        if (!message) {
+          message = `File uploaded: ${uploadedFile.name}`;
+        }
+        fileToProcess = uploadedFile;
+      }
+      
+      onSendMessage(message, audioBlob, fileToProcess);
       setInputText('');
       setUploadedFile(null);
       setRecordedAudio(null);
@@ -82,6 +103,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
               </p>
               <p className="text-xs text-muted-foreground">
                 {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                {isFileAudio && ` • ${uploadedFile.type}`}
               </p>
             </div>
           </div>
