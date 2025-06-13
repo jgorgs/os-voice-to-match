@@ -42,7 +42,8 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
       const analyser = audioContext.createAnalyser();
       const source = audioContext.createMediaElementSource(audioRef.current);
       
-      analyser.fftSize = 256;
+      analyser.fftSize = 128;
+      analyser.smoothingTimeConstant = 0.8;
       source.connect(analyser);
       analyser.connect(audioContext.destination);
       
@@ -73,27 +74,61 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
       
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      const barWidth = canvas.width / bufferLength * 2;
-      let x = 0;
+      const barCount = 32;
+      const barWidth = canvas.width / barCount;
+      const barSpacing = 1;
+      const actualBarWidth = barWidth - barSpacing;
       
-      for (let i = 0; i < bufferLength; i++) {
-        const barHeight = (dataArray[i] / 255) * canvas.height * 0.8;
+      for (let i = 0; i < barCount; i++) {
+        const dataIndex = Math.floor((i / barCount) * bufferLength);
+        const barHeight = Math.max(2, (dataArray[dataIndex] / 255) * canvas.height * 0.9);
         
-        // Create gradient
-        const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight);
-        gradient.addColorStop(0, 'hsl(var(--primary))');
-        gradient.addColorStop(1, 'hsl(var(--primary) / 0.3)');
+        const x = i * barWidth;
+        const y = (canvas.height - barHeight) / 2;
+        
+        // Create rounded bars with gradient
+        const gradient = ctx.createLinearGradient(0, y, 0, y + barHeight);
+        gradient.addColorStop(0, 'hsl(var(--primary) / 0.8)');
+        gradient.addColorStop(0.5, 'hsl(var(--primary))');
+        gradient.addColorStop(1, 'hsl(var(--primary) / 0.6)');
         
         ctx.fillStyle = gradient;
-        ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-        
-        x += barWidth;
+        ctx.roundRect(x, y, actualBarWidth, barHeight, 2);
+        ctx.fill();
       }
       
       animationRef.current = requestAnimationFrame(draw);
     };
     
     draw();
+  };
+
+  const drawStaticWaveform = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    const barCount = 32;
+    const barWidth = canvas.width / barCount;
+    const barSpacing = 1;
+    const actualBarWidth = barWidth - barSpacing;
+    
+    // Create a static waveform pattern
+    for (let i = 0; i < barCount; i++) {
+      const baseHeight = 4 + Math.sin(i * 0.3) * 8 + Math.random() * 6;
+      const barHeight = Math.max(2, baseHeight);
+      
+      const x = i * barWidth;
+      const y = (canvas.height - barHeight) / 2;
+      
+      ctx.fillStyle = 'hsl(var(--muted-foreground) / 0.3)';
+      ctx.roundRect(x, y, actualBarWidth, barHeight, 2);
+      ctx.fill();
+    }
   };
 
   const togglePlayback = async () => {
@@ -124,6 +159,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
     if (audioRef.current) {
       setDuration(audioRef.current.duration);
     }
+    drawStaticWaveform();
   };
 
   const handlePlay = () => {
@@ -133,6 +169,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
   
   const handlePause = () => {
     setIsPlaying(false);
+    drawStaticWaveform();
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
@@ -141,6 +178,7 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
   const handleEnded = () => {
     setIsPlaying(false);
     setCurrentTime(0);
+    drawStaticWaveform();
     if (animationRef.current) {
       cancelAnimationFrame(animationRef.current);
     }
@@ -158,29 +196,30 @@ const AudioPlayer: React.FC<AudioPlayerProps> = ({ audioBlob }) => {
     <div className="flex items-center space-x-3 py-2">
       <button
         onClick={togglePlayback}
-        className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
+        className="p-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors shadow-sm"
       >
         {isPlaying ? <Pause size={16} /> : <Play size={16} />}
       </button>
       
-      <div className="flex-1 flex items-center space-x-2">
-        <div className="flex items-center space-x-2 flex-1">
+      <div className="flex-1 flex items-center space-x-3">
+        <div className="flex items-center space-x-3 flex-1">
           <canvas
             ref={canvasRef}
-            width={120}
+            width={160}
             height={32}
-            className="rounded bg-muted/30 border"
+            className="rounded"
+            style={{ background: 'transparent' }}
           />
           
-          <div className="flex-1 bg-muted rounded-full h-2 relative overflow-hidden">
+          <div className="flex-1 bg-muted rounded-full h-1.5 relative overflow-hidden">
             <div 
-              className="bg-primary h-full transition-all duration-100"
+              className="bg-primary h-full transition-all duration-100 rounded-full"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
         </div>
         
-        <span className="text-xs text-muted-foreground min-w-[4rem]">
+        <span className="text-xs text-muted-foreground min-w-[4rem] font-mono">
           {formatTime(currentTime)} / {formatTime(duration)}
         </span>
       </div>
