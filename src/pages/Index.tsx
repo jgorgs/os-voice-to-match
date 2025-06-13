@@ -4,6 +4,7 @@ import ChatInput from '../components/ChatInput';
 import ThinkingAnimation from '../components/ThinkingAnimation';
 import { supabase } from "@/integrations/supabase/client";
 import { uploadAudioFile } from '../utils/audioUpload';
+
 interface ChatHistoryItem {
   id: string;
   type: 'user' | 'agent' | 'job_spec';
@@ -16,6 +17,7 @@ interface ProcessingStep {
   text: string;
   completed: boolean;
 }
+
 const Index = () => {
   const [chatHistory, setChatHistory] = useState<ChatHistoryItem[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -189,7 +191,7 @@ Ready to take the next step in your career? We'd love to hear from you!`;
                 <div className="space-y-2">
                   <h2 className="text-2xl font-semibold text-foreground">Describe the role and
 we'll turn it into a spec and sourcing plan.</h2>
-                  <p className="text-muted-foreground max-w-md">Just describe the role in your own words. We’ll turn it into a polished job spec and suggest the best companies to target talent from. Speak naturally, we’ll handle the rest.</p>
+                  <p className="text-muted-foreground max-w-md mx-auto">Just describe the role in your own words. We'll turn it into a polished job spec and suggest the best companies to target talent from. Speak naturally, we'll handle the rest.</p>
                 </div>
               </div> : <>
                 {chatHistory.map(item => <ChatMessage key={item.id} message={item.message} isUser={item.type === 'user'} isJobSpec={item.type === 'job_spec'} />)}
@@ -205,4 +207,5 @@ we'll turn it into a spec and sourcing plan.</h2>
       </div>
     </div>;
 };
+
 export default Index;
