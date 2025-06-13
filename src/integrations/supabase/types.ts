@@ -222,6 +222,33 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_history: {
+        Row: {
+          agent_steps: string[] | null
+          audio_file_path: string | null
+          created_at: string
+          final_job_spec: string | null
+          id: string
+          user_input_text: string | null
+        }
+        Insert: {
+          agent_steps?: string[] | null
+          audio_file_path?: string | null
+          created_at?: string
+          final_job_spec?: string | null
+          id?: string
+          user_input_text?: string | null
+        }
+        Update: {
+          agent_steps?: string[] | null
+          audio_file_path?: string | null
+          created_at?: string
+          final_job_spec?: string | null
+          id?: string
+          user_input_text?: string | null
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           created_at: string
@@ -258,6 +285,24 @@ export type Database = {
           name?: string | null
           size?: string | null
           website?: string | null
+        }
+        Relationships: []
+      }
+      projects: {
+        Row: {
+          created_at: string
+          id: string
+          job_spec_markdown: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_spec_markdown?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_spec_markdown?: string | null
         }
         Relationships: []
       }

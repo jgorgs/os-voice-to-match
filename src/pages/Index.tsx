@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import ChatMessage from '../components/ChatMessage';
 import ChatInput from '../components/ChatInput';
 import ThinkingAnimation from '../components/ThinkingAnimation';
+import { supabase } from "@/integrations/supabase/client";
+import { uploadAudioFile } from '../utils/audioUpload';
 
 interface ChatHistoryItem {
   id: string;
@@ -102,9 +103,17 @@ Ready to take the next step in your career? We'd love to hear from you!`;
 
   const handleSendMessage = async (message: string, audioBlob?: Blob, file?: File) => {
     let displayMessage = message;
+    let audioFilePath: string | null = null;
     
+    // Handle audio upload if present
     if (audioBlob) {
       displayMessage = 'Voice message (transcribed): ' + message;
+      audioFilePath = await uploadAudioFile(audioBlob);
+      
+      if (!audioFilePath) {
+        console.error('Failed to upload audio file');
+        // Continue anyway, but without audio file reference
+      }
     } else if (file) {
       displayMessage = `File uploaded: ${file.name}`;
     }
@@ -118,6 +127,22 @@ Ready to take the next step in your career? We'd love to hear from you!`;
     };
 
     setChatHistory(prev => [...prev, newMessage]);
+
+    try {
+      // Save to Supabase with audio file path
+      const { error } = await supabase
+        .from('chat_history')
+        .insert({
+          user_input_text: displayMessage,
+          audio_file_path: audioFilePath
+        });
+
+      if (error) {
+        console.error('Error saving to database:', error);
+      }
+    } catch (error) {
+      console.error('Error saving chat history:', error);
+    }
 
     // Simulate processing
     await simulateAgentProcess(message, !!file);
