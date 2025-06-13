@@ -7,9 +7,11 @@ export const uploadAudioFile = async (audioBlob: Blob): Promise<string | null> =
     const timestamp = Date.now();
     const filename = `audio_${timestamp}.wav`;
     
+    console.log('Uploading audio file:', filename, 'Size:', audioBlob.size);
+    
     // Upload the file to Supabase storage
     const { data, error } = await supabase.storage
-      .from('audio_files')
+      .from('audio-files')
       .upload(filename, audioBlob, {
         contentType: 'audio/wav',
         upsert: false
@@ -20,6 +22,7 @@ export const uploadAudioFile = async (audioBlob: Blob): Promise<string | null> =
       return null;
     }
 
+    console.log('Audio upload successful:', data);
     return data.path;
   } catch (error) {
     console.error('Error uploading audio file:', error);

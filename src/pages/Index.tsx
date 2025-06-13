@@ -106,10 +106,15 @@ Ready to take the next step in your career? We'd love to hear from you!`;
     let displayMessage = message;
     let audioFilePath: string | null = null;
 
+    console.log('handleSendMessage called with:', { message, hasAudio: !!audioBlob, hasFile: !!file });
+
     // Handle audio upload if present
     if (audioBlob) {
+      console.log('Processing audio blob, size:', audioBlob.size);
       displayMessage = 'Voice message (transcribed): ' + message;
       audioFilePath = await uploadAudioFile(audioBlob);
+      console.log('Audio upload result:', audioFilePath);
+      
       if (!audioFilePath) {
         console.error('Failed to upload audio file');
         // Continue anyway, but without audio file reference
@@ -117,6 +122,7 @@ Ready to take the next step in your career? We'd love to hear from you!`;
     } else if (file) {
       displayMessage = `File uploaded: ${file.name}`;
     }
+
     const newMessage: ChatHistoryItem = {
       id: `user-${Date.now()}`,
       type: 'user',
@@ -124,17 +130,28 @@ Ready to take the next step in your career? We'd love to hear from you!`;
       timestamp: new Date(),
       file
     };
+
     setChatHistory(prev => [...prev, newMessage]);
+
     try {
-      // Save to Supabase with audio file path
-      const {
-        error
-      } = await supabase.from('chat_history').insert({
-        user_input_text: displayMessage,
-        audio_file_path: audioFilePath
+      console.log('Saving to database:', { 
+        user_input_text: displayMessage, 
+        audio_file_path: audioFilePath 
       });
+
+      // Save to Supabase
+      const { data, error } = await supabase
+        .from('chat_history')
+        .insert({
+          user_input_text: displayMessage,
+          audio_file_path: audioFilePath
+        })
+        .select();
+
       if (error) {
         console.error('Error saving to database:', error);
+      } else {
+        console.log('Successfully saved to database:', data);
       }
     } catch (error) {
       console.error('Error saving chat history:', error);
