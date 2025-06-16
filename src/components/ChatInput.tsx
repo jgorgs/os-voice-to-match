@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 import { Send, Mic, Paperclip, X } from 'lucide-react';
 import VoiceRecorder from './VoiceRecorder';
@@ -142,21 +143,23 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
         </div>
       )}
       
-      <div className="relative flex items-center bg-background border border-border rounded-full shadow-sm hover:shadow-md transition-shadow duration-200 p-2">
-        <VoiceRecorder
-          onRecordingComplete={handleRecordingComplete}
-          isRecording={isRecording}
-          setIsRecording={setIsRecording}
-        />
-        
-        <button
-          onClick={handleUploadClick}
-          disabled={disabled || isRecording}
-          className="p-3 rounded-full transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
-          title="Upload file"
-        >
-          <Paperclip size={16} />
-        </button>
+      <div className="relative flex items-start bg-background border border-border rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 p-3">
+        <div className="flex items-center space-x-2 mr-3 pt-1">
+          <VoiceRecorder
+            onRecordingComplete={handleRecordingComplete}
+            isRecording={isRecording}
+            setIsRecording={setIsRecording}
+          />
+          
+          <button
+            onClick={handleUploadClick}
+            disabled={disabled || isRecording}
+            className="p-2 rounded-full transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
+            title="Upload file"
+          >
+            <Paperclip size={16} />
+          </button>
+        </div>
         
         <input
           ref={fileInputRef}
@@ -166,20 +169,20 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
           className="hidden"
         />
         
-        <input
-          type="text"
+        <textarea
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
           placeholder="Looking for a senior product designer to lead redesigns and collaborate closely with engineering..."
-          className="flex-1 bg-transparent border-none outline-none text-foreground placeholder-muted-foreground px-4 py-3 text-sm"
+          className="flex-1 bg-transparent border-none outline-none text-foreground placeholder-muted-foreground resize-none text-sm min-h-[80px] py-2"
           disabled={disabled || isRecording}
+          rows={3}
         />
         
         <button
           onClick={handleSend}
           disabled={!canSend}
-          className={`p-3 rounded-full transition-all duration-200 ${
+          className={`ml-3 p-3 rounded-full transition-all duration-200 self-end ${
             canSend
               ? 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm'
               : 'bg-muted text-muted-foreground cursor-not-allowed'
