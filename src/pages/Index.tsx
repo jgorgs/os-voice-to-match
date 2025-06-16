@@ -185,11 +185,11 @@ Ready to take the next step in your career? We'd love to hear from you!`;
           {/* Chat History Container */}
           <div ref={chatContainerRef} className="flex-1 overflow-y-auto py-8 space-y-4 min-h-0">
             {chatHistory.length === 0 ? <div className="flex flex-col items-center justify-center text-center py-12 space-y-4">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
+                <div className="w-16 h-16 rounded-full overflow-hidden">
                   <img 
-                    src="/lovable-uploads/11f6ac57-a7ba-40f1-b2de-24c3dfdeada5.png" 
+                    src="/lovable-uploads/16770f82-a00a-4b7b-bcbd-e71d02850860.png" 
                     alt="OutScout Logo" 
-                    className="w-8 h-8 object-contain"
+                    className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="space-y-2">
