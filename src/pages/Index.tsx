@@ -173,7 +173,7 @@ Ready to take the next step in your career? We'd love to hear from you!`;
       <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-center">
           <h1 className="text-xl font-semibold text-foreground">
-            Voice to Spec by OutScout
+            Voice to Match by OutScout
           </h1>
         </div>
       </header>
@@ -185,12 +185,15 @@ Ready to take the next step in your career? We'd love to hear from you!`;
           {/* Chat History Container */}
           <div ref={chatContainerRef} className="flex-1 overflow-y-auto py-8 space-y-4 min-h-0">
             {chatHistory.length === 0 ? <div className="flex flex-col items-center justify-center text-center py-12 space-y-4">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-                  <span className="text-2xl">🚀</span>
+                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
+                  <img 
+                    src="/lovable-uploads/11f6ac57-a7ba-40f1-b2de-24c3dfdeada5.png" 
+                    alt="OutScout Logo" 
+                    className="w-8 h-8 object-contain"
+                  />
                 </div>
                 <div className="space-y-2">
-                  <h2 className="text-2xl font-semibold text-foreground">Describe the role and
-we'll turn it into a spec and sourcing plan.</h2>
+                  <h2 className="text-2xl font-semibold text-foreground">Tell us the role and we'll turn it into a spec and search plan.</h2>
                   <p className="text-muted-foreground max-w-md mx-auto">Just describe the role in your own words. We'll turn it into a polished job spec and suggest the best companies to target talent from. Speak naturally, we'll handle the rest.</p>
                 </div>
               </div> : <>
