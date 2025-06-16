@@ -13,7 +13,7 @@ const EmptyState: React.FC = () => {
       </div>
       <div className="space-y-2">
         <h2 className="text-2xl font-semibold text-foreground">Tell us the role and we'll turn it into a spec and search plan.</h2>
-        <p className="text-muted-foreground max-w-md mx-auto">Just describe the role in your own words. We'll turn it into a polished job spec and suggest the best companies to target talent from. Speak naturally, we'll handle the rest.</p>
+        <p className="text-muted-foreground max-w-md mx-auto">Use your own words. Share what this person will do, what good looks like, and anything that matters. Tech stack, seniority, goals, or pain points. We'll turn it into spec and search plan.</p>
       </div>
     </div>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Send, Mic, Paperclip, X } from 'lucide-react';
 import VoiceRecorder from './VoiceRecorder';
@@ -172,7 +171,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Describe the role, or just say the job title..."
+          placeholder="Looking for a senior product designer to lead redesigns and collaborate closely with engineering..."
           className="flex-1 bg-transparent border-none outline-none text-foreground placeholder-muted-foreground px-4 py-3 text-sm"
           disabled={disabled || isRecording}
         />
