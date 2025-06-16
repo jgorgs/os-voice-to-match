@@ -1,9 +1,9 @@
 
 import React, { useState, useRef } from 'react';
-import { Send, Mic, Paperclip, X } from 'lucide-react';
-import VoiceRecorder from './VoiceRecorder';
-import AudioPlayer from './AudioPlayer';
-import { uploadAudioFile } from '../utils/audioUpload';
+import { Send } from 'lucide-react';
+import FilePreview from './FilePreview';
+import RecordingPreview from './RecordingPreview';
+import InputControls from './InputControls';
 
 interface ChatInputProps {
   onSendMessage: (message: string, audioBlob?: Blob, file?: File) => void;
@@ -86,80 +86,26 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, disabled = false }
     setRecordedAudio(null);
   };
 
-  const isFileAudio = uploadedFile?.type.startsWith('audio/');
   const canSend = (inputText.trim() || uploadedFile || recordedAudio) && !disabled && !isRecording;
 
   return (
     <div className="w-full">
       {uploadedFile && (
-        <div className="mb-3 p-3 bg-muted border border-border rounded-lg flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
-              {isFileAudio ? '🎵' : '📄'}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
-                {uploadedFile.name}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
-                {isFileAudio && ` • ${uploadedFile.type}`}
-              </p>
-            </div>
-          </div>
-          <button
-            onClick={removeFile}
-            className="text-muted-foreground hover:text-foreground transition-colors p-1"
-          >
-            <X size={16} />
-          </button>
-        </div>
+        <FilePreview file={uploadedFile} onRemove={removeFile} />
       )}
 
       {recordedAudio && (
-        <div className="mb-3 p-3 bg-muted border border-border rounded-lg">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-primary/10 rounded-md flex items-center justify-center">
-                🎤
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground">
-                  Voice recording ready
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Review your recording below
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={removeRecording}
-              className="text-muted-foreground hover:text-foreground transition-colors p-1"
-            >
-              <X size={16} />
-            </button>
-          </div>
-          <AudioPlayer audioBlob={recordedAudio} />
-        </div>
+        <RecordingPreview audioBlob={recordedAudio} onRemove={removeRecording} />
       )}
       
       <div className="relative flex items-start bg-background border border-border rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-200 p-3">
-        <div className="flex items-center space-x-2 mr-3 pt-1">
-          <VoiceRecorder
-            onRecordingComplete={handleRecordingComplete}
-            isRecording={isRecording}
-            setIsRecording={setIsRecording}
-          />
-          
-          <button
-            onClick={handleUploadClick}
-            disabled={disabled || isRecording}
-            className="p-2 rounded-full transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
-            title="Upload file"
-          >
-            <Paperclip size={16} />
-          </button>
-        </div>
+        <InputControls
+          onRecordingComplete={handleRecordingComplete}
+          isRecording={isRecording}
+          setIsRecording={setIsRecording}
+          onUploadClick={handleUploadClick}
+          disabled={disabled}
+        />
         
         <input
           ref={fileInputRef}
