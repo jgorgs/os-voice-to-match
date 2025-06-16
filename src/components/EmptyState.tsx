@@ -12,8 +12,8 @@ const EmptyState: React.FC = () => {
         />
       </div>
       <div className="space-y-2">
-        <h2 className="text-2xl font-semibold text-foreground">Tell us the role and we'll turn it into a spec and search plan.</h2>
-        <p className="text-muted-foreground max-w-2xl mx-auto">Share what this person will do, what good looks like, and anything that matters. Tech stack, seniority, goals, or pain points. We'll turn it into spec and search plan.</p>
+        <h2 className="text-2xl font-semibold text-foreground">Explain the role and we'll build the plan</h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">Skip the intake doc. Just explain what you need, like you would in a kickoff call. We'll turn your voice note into a polished job spec and search plan.</p>
       </div>
     </div>
   );
