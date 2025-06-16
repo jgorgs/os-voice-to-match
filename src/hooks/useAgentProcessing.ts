@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 
 interface ProcessingStep {
@@ -99,6 +98,15 @@ export const useAgentProcessing = () => {
     };
 
     onComplete(newJobSpec);
+  };
+
+  const updateJobSpec = (newJobSpec: string) => {
+    if (processingResult) {
+      setProcessingResult({
+        ...processingResult,
+        jobSpec: newJobSpec
+      });
+    }
   };
 
   const generateJobSpec = (userInput: string): string => {
@@ -249,6 +257,7 @@ Ready to take the next step in your career? We'd love to hear from you!`;
     showSplitView,
     processingResult,
     simulateAgentProcess,
-    resetProcessing
+    resetProcessing,
+    updateJobSpec
   };
 };

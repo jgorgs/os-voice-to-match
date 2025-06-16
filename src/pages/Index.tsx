@@ -16,7 +16,8 @@ const Index = () => {
     showSplitView, 
     processingResult, 
     simulateAgentProcess, 
-    resetProcessing 
+    resetProcessing,
+    updateJobSpec
   } = useAgentProcessing();
   const { toast } = useToast();
 
@@ -38,15 +39,18 @@ const Index = () => {
   };
 
   const handleCopy = () => {
-    if (processingResult) {
-      const fullContent = `${processingResult.jobSpec}\n\n--- SEARCH PLAN ---\n\nTarget Companies: ${processingResult.searchPlan.targetCompanies.join(', ')}\n\nRelevant Titles: ${processingResult.searchPlan.relevantTitles.join(', ')}\n\nFilters:\n- Experience: ${processingResult.searchPlan.filters.experience}\n- Location: ${processingResult.searchPlan.filters.location}\n- Salary: ${processingResult.searchPlan.filters.salary}\n- Skills: ${processingResult.searchPlan.filters.skills.join(', ')}`;
-      
-      navigator.clipboard.writeText(fullContent);
-      toast({
-        title: "Copied to Clipboard",
-        description: "Job specification and search plan copied successfully.",
-      });
-    }
+    toast({
+      title: "Copied to Clipboard",
+      description: "Job specification and search plan copied successfully.",
+    });
+  };
+
+  const handleJobSpecUpdate = (newJobSpec: string) => {
+    updateJobSpec(newJobSpec);
+    toast({
+      title: "Job Spec Updated",
+      description: "Your changes have been saved successfully.",
+    });
   };
 
   // Show split view results
@@ -58,6 +62,7 @@ const Index = () => {
         isVisible={showSplitView}
         onEdit={handleEdit}
         onCopy={handleCopy}
+        onJobSpecUpdate={handleJobSpecUpdate}
       />
     );
   }
