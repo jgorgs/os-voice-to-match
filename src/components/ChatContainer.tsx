@@ -1,7 +1,6 @@
 
 import React, { useRef, useEffect } from 'react';
 import ChatMessage from './ChatMessage';
-import ThinkingAnimation from './ThinkingAnimation';
 import EmptyState from './EmptyState';
 
 interface ChatHistoryItem {
@@ -55,7 +54,6 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
               isJobSpec={item.type === 'job_spec'} 
             />
           ))}
-          {isProcessing && <ThinkingAnimation steps={processingSteps} />}
         </>
       )}
     </div>
