@@ -9,6 +9,7 @@ interface InputControlsProps {
   setIsRecording: (recording: boolean) => void;
   onUploadClick: () => void;
   disabled: boolean;
+  hideUpload?: boolean;
 }
 
 const InputControls: React.FC<InputControlsProps> = ({
@@ -16,7 +17,8 @@ const InputControls: React.FC<InputControlsProps> = ({
   isRecording,
   setIsRecording,
   onUploadClick,
-  disabled
+  disabled,
+  hideUpload = false
 }) => {
   return (
     <div className="flex items-center space-x-2 mr-3 pt-1">
@@ -26,14 +28,16 @@ const InputControls: React.FC<InputControlsProps> = ({
         setIsRecording={setIsRecording}
       />
       
-      <button
-        onClick={onUploadClick}
-        disabled={disabled || isRecording}
-        className="p-2 rounded-full transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
-        title="Upload file"
-      >
-        <Paperclip size={16} />
-      </button>
+      {!hideUpload && (
+        <button
+          onClick={onUploadClick}
+          disabled={disabled || isRecording}
+          className="p-2 rounded-full transition-all duration-200 hover:bg-muted text-muted-foreground hover:text-foreground"
+          title="Upload file"
+        >
+          <Paperclip size={16} />
+        </button>
+      )}
     </div>
   );
 };

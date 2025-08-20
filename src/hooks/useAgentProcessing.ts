@@ -34,7 +34,11 @@ export const useAgentProcessing = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>([]);
   const [showSplitView, setShowSplitView] = useState(false);
+  const [showSearchPlan, setShowSearchPlan] = useState(false);
+  const [showParallelSearch, setShowParallelSearch] = useState(false);
   const [processingResult, setProcessingResult] = useState<ProcessingResult | null>(null);
+  const [searchPlanData, setSearchPlanData] = useState<any>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
 
   const simulateAgentProcess = async (
     userMessage: string, 
@@ -84,10 +88,12 @@ export const useAgentProcessing = () => {
     
     const mockJobSpec = generateJobSpec(userMessage);
     const mockSearchPlan = generateSearchPlan(userMessage);
+    const enhancedSearchPlan = generateEnhancedSearchPlan(userMessage);
 
+    setSearchPlanData(enhancedSearchPlan);
     setProcessingResult({ jobSpec: mockJobSpec, searchPlan: mockSearchPlan });
     setIsProcessing(false);
-    setShowSplitView(true);
+    setShowSearchPlan(true);
 
     // Still call the original callback for compatibility
     const newJobSpec: ChatHistoryItem = {
@@ -244,20 +250,54 @@ Ready to take the next step in your career? We'd love to hear from you!`;
     }
   };
 
+  const confirmSearchPlan = (updatedPlan: any) => {
+    setSearchPlanData(updatedPlan);
+    setShowSearchPlan(false);
+    setShowParallelSearch(true);
+  };
+
+  const startParallelSearch = () => {
+    setShowSearchPlan(false);
+    setShowParallelSearch(true);
+  };
+
+  const generateEnhancedSearchPlan = (userInput: string) => {
+    const basicPlan = generateSearchPlan(userInput);
+    return {
+      jobSummary: `Looking for a ${userInput.toLowerCase().includes('senior') ? 'senior' : ''} professional with expertise in the specified areas. This role offers growth opportunities and competitive compensation.`,
+      ...basicPlan,
+      weights: {
+        skills: 70,
+        experience: 25,
+        location: 5
+      }
+    };
+  };
+
   const resetProcessing = () => {
     setIsProcessing(false);
     setShowSplitView(false);
+    setShowSearchPlan(false);
+    setShowParallelSearch(false);
     setProcessingSteps([]);
     setProcessingResult(null);
+    setSearchPlanData(null);
+    setSearchResults([]);
   };
 
   return {
     isProcessing,
     processingSteps,
     showSplitView,
+    showSearchPlan,
+    showParallelSearch,
     processingResult,
+    searchPlanData,
+    searchResults,
     simulateAgentProcess,
     resetProcessing,
-    updateJobSpec
+    updateJobSpec,
+    confirmSearchPlan,
+    startParallelSearch
   };
 };

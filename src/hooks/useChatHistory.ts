@@ -87,9 +87,14 @@ export const useChatHistory = () => {
     return { message, hasFile: !!file || !!audioBlob };
   };
 
+  const clearHistory = () => {
+    setChatHistory([]);
+  };
+
   return {
     chatHistory,
     addMessage,
-    handleSendMessage
+    handleSendMessage,
+    clearHistory
   };
 };
