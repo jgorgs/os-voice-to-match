@@ -5,13 +5,8 @@ import MainCanvas from './MainCanvas';
 import { useAgentProcessing } from '../hooks/useAgentProcessing';
 import { useChatHistory } from '../hooks/useChatHistory';
 import { useToast } from '../hooks/use-toast';
-
-interface Position {
-  id: string;
-  title: string;
-  date: Date;
-  status: 'In Progress' | 'Completed' | 'Draft';
-}
+import { useSearch } from '../hooks/useSearch';
+import { Position } from '../types';
 
 const AppLayout: React.FC = () => {
   const [currentPositionId, setCurrentPositionId] = useState<string | null>(null);
@@ -32,6 +27,17 @@ const AppLayout: React.FC = () => {
   } = useChatHistory();
   const agentProcessing = useAgentProcessing();
   const { toast } = useToast();
+  
+  // Search functionality
+  const {
+    query: searchQuery,
+    isActive: isSearchActive,
+    filteredPositions,
+    handleSearch,
+    handleFocus,
+    handleBlur,
+    clearSearch,
+  } = useSearch(positions);
 
   const handleNewPosition = () => {
     const newPosition: Position = {
@@ -69,10 +75,11 @@ const AppLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-background">
       <Sidebar
-        positions={positions}
+        positions={searchQuery ? filteredPositions : positions}
         currentPositionId={currentPositionId}
         onPositionSelect={handlePositionSelect}
         onNewPosition={handleNewPosition}
+        searchQuery={searchQuery}
       />
       
       <div className="flex-1 flex flex-col min-w-0">
@@ -80,6 +87,14 @@ const AppLayout: React.FC = () => {
           onNewPosition={handleNewPosition}
           currentPosition={positions.find(p => p.id === currentPositionId)}
           onPositionUpdate={handlePositionUpdate}
+          searchQuery={searchQuery}
+          onSearchChange={handleSearch}
+          onSearchFocus={handleFocus}
+          onSearchBlur={handleBlur}
+          isSearchActive={isSearchActive}
+          filteredPositions={filteredPositions}
+          onPositionSelect={handlePositionSelect}
+          onSearchClear={clearSearch}
         />
         
         <MainCanvas

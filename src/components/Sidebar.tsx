@@ -2,26 +2,22 @@ import React from 'react';
 import { Plus, FileText, Clock, CheckCircle, Edit3 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-
-interface Position {
-  id: string;
-  title: string;
-  date: Date;
-  status: 'In Progress' | 'Completed' | 'Draft';
-}
+import { Position } from '../types';
 
 interface SidebarProps {
   positions: Position[];
   currentPositionId: string | null;
   onPositionSelect: (positionId: string) => void;
   onNewPosition: () => void;
+  searchQuery?: string;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
   positions, 
   currentPositionId, 
   onPositionSelect, 
-  onNewPosition 
+  onNewPosition,
+  searchQuery = ''
 }) => {
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -60,6 +56,19 @@ const Sidebar: React.FC<SidebarProps> = ({
     return date.toLocaleDateString();
   };
 
+  const highlightMatch = (text: string, query: string) => {
+    if (!query) return text;
+    
+    const regex = new RegExp(`(${query})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? 
+        <mark key={index} className="bg-yellow-200 dark:bg-yellow-900 px-0 rounded-sm">{part}</mark> : 
+        part
+    );
+  };
+
   return (
     <div className="w-80 bg-background border-r border-border flex flex-col">
       {/* Header */}
@@ -92,7 +101,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-start justify-between mb-2">
                 <h3 className="font-medium text-sm text-foreground truncate flex-1">
-                  {position.title}
+                  {searchQuery ? highlightMatch(position.title, searchQuery) : position.title}
                 </h3>
                 <div className="flex items-center gap-1 ml-2">
                   {getStatusIcon(position.status)}
