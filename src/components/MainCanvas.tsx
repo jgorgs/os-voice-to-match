@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import MultiInputTabs from './MultiInputTabs';
 import ChatContainer from './ChatContainer';
 import SimplifiedEmptyState from './SimplifiedEmptyState';
 import ChatModeInput from './ChatModeInput';
@@ -162,7 +161,7 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
   // Main canvas content - show simplified empty state or chat interface
   return (
     <div className="flex-1 flex flex-col">
-      {!currentPositionId ? (
+      {!hasStartedConversation ? (
         <div className="flex-1 flex items-center justify-center">
           <SimplifiedEmptyState 
             onSendMessage={onSendMessage} 
@@ -181,16 +180,8 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
             />
           </div>
 
-          {/* Input Area - Show MultiInputTabs for new conversations, ChatModeInput for ongoing ones */}
-          {!hasStartedConversation ? (
-            <div className="border-t border-border bg-background p-6">
-              <div className="max-w-4xl mx-auto">
-                <MultiInputTabs onSendMessage={onSendMessage} disabled={agentProcessing.isProcessing} />
-              </div>
-            </div>
-          ) : (
-            <ChatModeInput onSendMessage={onSendMessage} disabled={agentProcessing.isProcessing} />
-          )}
+          {/* Chat Mode Input */}
+          <ChatModeInput onSendMessage={onSendMessage} disabled={agentProcessing.isProcessing} />
         </>
       )}
     </div>
