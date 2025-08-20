@@ -55,6 +55,8 @@ const AppLayout: React.FC = () => {
       title: "New Position Started",
       description: "Ready to create your next search plan.",
     });
+    
+    return newPosition.id;
   };
 
   const handlePositionSelect = (positionId: string) => {
@@ -84,7 +86,6 @@ const AppLayout: React.FC = () => {
       
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar 
-          onNewPosition={handleNewPosition}
           currentPosition={positions.find(p => p.id === currentPositionId)}
           onPositionUpdate={handlePositionUpdate}
           searchQuery={searchQuery}
@@ -107,6 +108,7 @@ const AppLayout: React.FC = () => {
           handleSendMessage={handleSendMessage}
           agentProcessing={agentProcessing}
           onPositionUpdate={handlePositionUpdate}
+          onCreateNewPosition={handleNewPosition}
         />
       </div>
     </div>

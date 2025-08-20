@@ -7,7 +7,6 @@ import SearchDropdown from './SearchDropdown';
 import { Position } from '../types';
 
 interface TopBarProps {
-  onNewPosition: () => void;
   currentPosition?: Position;
   onPositionUpdate?: (positionId: string, updates: Partial<Position>) => void;
   // Search props
@@ -22,7 +21,6 @@ interface TopBarProps {
 }
 
 const TopBar: React.FC<TopBarProps> = ({ 
-  onNewPosition, 
   currentPosition, 
   onPositionUpdate,
   searchQuery,
@@ -95,16 +93,6 @@ const TopBar: React.FC<TopBarProps> = ({
 
       {/* Right Section - Actions */}
       <div className="flex items-center gap-3">
-        <Button
-          onClick={onNewPosition}
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-2"
-        >
-          <Plus size={16} />
-          New Position
-        </Button>
-        
         <Button
           variant="ghost"
           size="sm"

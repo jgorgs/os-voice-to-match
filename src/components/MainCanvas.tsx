@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import MultiInputTabs from './MultiInputTabs';
 import ChatContainer from './ChatContainer';
-import EmptyState from './EmptyState';
+import SimplifiedEmptyState from './SimplifiedEmptyState';
 import { useToast } from '../hooks/use-toast';
 
 interface Position {
@@ -21,6 +21,7 @@ interface MainCanvasProps {
   handleSendMessage: (message: string, audioBlob?: Blob, file?: File) => Promise<any>;
   agentProcessing: any;
   onPositionUpdate: (positionId: string, updates: Partial<Position>) => void;
+  onCreateNewPosition: () => string; // Returns the new position ID
 }
 
 const MainCanvas: React.FC<MainCanvasProps> = ({
@@ -32,7 +33,8 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
   addPlanPreview,
   handleSendMessage,
   agentProcessing,
-  onPositionUpdate
+  onPositionUpdate,
+  onCreateNewPosition
 }) => {
   const { toast } = useToast();
   
@@ -42,12 +44,19 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
   const [isEditingPlan, setIsEditingPlan] = useState(false);
 
   const onSendMessage = async (message: string, audioBlob?: Blob, file?: File) => {
-    if (!currentPositionId) return;
+    let positionId = currentPositionId;
+    
+    // If no current position, create a new one automatically
+    if (!positionId) {
+      positionId = onCreateNewPosition();
+    }
     
     const { message: processedMessage, hasFile } = await handleSendMessage(message, audioBlob, file);
     
     // Update position status to In Progress
-    onPositionUpdate(currentPositionId, { status: 'In Progress' });
+    if (positionId) {
+      onPositionUpdate(positionId, { status: 'In Progress' });
+    }
     
     // Start the enhanced conversational flow
     startConversationalFlow(processedMessage, hasFile);
@@ -159,32 +168,35 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
     });
   };
 
-  // Main canvas content - always show chat interface
+  // Main canvas content - show simplified empty state or chat interface
   return (
     <div className="flex-1 flex flex-col">
-      {/* Chat History */}
-      <div className="flex-1 overflow-y-auto">
-        {chatHistory.length === 0 && !currentPositionId ? (
-          <div className="h-full flex items-center justify-center">
-            <EmptyState />
-          </div>
-        ) : (
-          <ChatContainer 
-            chatHistory={chatHistory}
-            isProcessing={false}
-            processingSteps={[]}
-            onMessageInteraction={handleMessageInteraction}
+      {!currentPositionId ? (
+        <div className="flex-1 flex items-center justify-center">
+          <SimplifiedEmptyState 
+            onSendMessage={onSendMessage} 
+            disabled={agentProcessing.isProcessing}
           />
-        )}
-      </div>
-
-      {/* Input Area */}
-      {currentPositionId && (
-        <div className="border-t border-border bg-background p-6">
-          <div className="max-w-4xl mx-auto">
-            <MultiInputTabs onSendMessage={onSendMessage} disabled={false} />
-          </div>
         </div>
+      ) : (
+        <>
+          {/* Chat History */}
+          <div className="flex-1 overflow-y-auto">
+            <ChatContainer 
+              chatHistory={chatHistory}
+              isProcessing={agentProcessing.isProcessing}
+              processingSteps={agentProcessing.processingSteps}
+              onMessageInteraction={handleMessageInteraction}
+            />
+          </div>
+
+          {/* Multi-Input Area */}
+          <div className="border-t border-border bg-background p-6">
+            <div className="max-w-4xl mx-auto">
+              <MultiInputTabs onSendMessage={onSendMessage} disabled={agentProcessing.isProcessing} />
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
