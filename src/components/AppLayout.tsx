@@ -21,7 +21,15 @@ const AppLayout: React.FC = () => {
     { id: '3', title: 'Marketing Manager', date: new Date(2024, 0, 22), status: 'Draft' }
   ]);
 
-  const { chatHistory, addMessage, handleSendMessage, clearHistory } = useChatHistory();
+  const { 
+    chatHistory, 
+    addMessage, 
+    addConfirmationMessage, 
+    addProcessingMessage, 
+    addPlanPreview, 
+    handleSendMessage, 
+    clearHistory 
+  } = useChatHistory();
   const agentProcessing = useAgentProcessing();
   const { toast } = useToast();
 
@@ -78,6 +86,9 @@ const AppLayout: React.FC = () => {
           currentPositionId={currentPositionId}
           chatHistory={chatHistory}
           addMessage={addMessage}
+          addConfirmationMessage={addConfirmationMessage}
+          addProcessingMessage={addProcessingMessage}
+          addPlanPreview={addPlanPreview}
           handleSendMessage={handleSendMessage}
           agentProcessing={agentProcessing}
           onPositionUpdate={handlePositionUpdate}

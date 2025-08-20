@@ -5,10 +5,12 @@ import { uploadAudioFile } from '../utils/audioUpload';
 
 interface ChatHistoryItem {
   id: string;
-  type: 'user' | 'agent' | 'job_spec';
+  type: 'user' | 'agent' | 'job_spec' | 'confirmation' | 'processing' | 'plan-preview' | 'results';
   message: string;
   timestamp: Date;
   file?: File;
+  isProcessing?: boolean;
+  data?: any; // For storing additional data like search plans
 }
 
 export const useChatHistory = () => {
@@ -16,6 +18,56 @@ export const useChatHistory = () => {
 
   const addMessage = (message: ChatHistoryItem) => {
     setChatHistory(prev => [...prev, message]);
+  };
+
+  const addConfirmationMessage = (userMessage: string) => {
+    const confirmationMessage: ChatHistoryItem = {
+      id: `confirmation-${Date.now()}`,
+      type: 'confirmation',
+      message: "Perfect! I'll analyze your requirements and create a tailored search plan. This usually takes 10-15 seconds.",
+      timestamp: new Date(),
+      isProcessing: true
+    };
+    addMessage(confirmationMessage);
+    return confirmationMessage;
+  };
+
+  const addProcessingMessage = (step: string) => {
+    const processingMessage: ChatHistoryItem = {
+      id: `processing-${Date.now()}`,
+      type: 'processing',
+      message: step,
+      timestamp: new Date()
+    };
+    addMessage(processingMessage);
+    return processingMessage;
+  };
+
+  const addPlanPreview = (searchPlan: any) => {
+    const planMessage: ChatHistoryItem = {
+      id: `plan-${Date.now()}`,
+      type: 'plan-preview',
+      message: `## Search Plan Created 🎯
+
+**Job Summary**: ${searchPlan.jobSummary}
+
+**Target Companies**: ${searchPlan.targetCompanies.join(', ')}
+
+**Search Criteria**:
+- Experience: ${searchPlan.filters.experience}
+- Location: ${searchPlan.filters.location}
+- Salary: ${searchPlan.filters.salary}
+- Required Skills: ${searchPlan.filters.skills.join(', ')}
+
+**Matching Weights**:
+- Skills: ${searchPlan.weights.skills}%
+- Experience: ${searchPlan.weights.experience}%
+- Location: ${searchPlan.weights.location}%`,
+      timestamp: new Date(),
+      data: searchPlan
+    };
+    addMessage(planMessage);
+    return planMessage;
   };
 
   const handleSendMessage = async (
@@ -94,6 +146,9 @@ export const useChatHistory = () => {
   return {
     chatHistory,
     addMessage,
+    addConfirmationMessage,
+    addProcessingMessage,
+    addPlanPreview,
     handleSendMessage,
     clearHistory
   };

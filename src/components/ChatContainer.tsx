@@ -5,10 +5,12 @@ import EmptyState from './EmptyState';
 
 interface ChatHistoryItem {
   id: string;
-  type: 'user' | 'agent' | 'job_spec';
+  type: 'user' | 'agent' | 'job_spec' | 'confirmation' | 'processing' | 'plan-preview' | 'results';
   message: string;
   timestamp: Date;
   file?: File;
+  isProcessing?: boolean;
+  data?: any;
 }
 
 interface ProcessingStep {
@@ -21,12 +23,14 @@ interface ChatContainerProps {
   chatHistory: ChatHistoryItem[];
   isProcessing: boolean;
   processingSteps: ProcessingStep[];
+  onMessageInteraction?: (messageId: string, action: string, data?: any) => void;
 }
 
 const ChatContainer: React.FC<ChatContainerProps> = ({
   chatHistory,
   isProcessing,
-  processingSteps
+  processingSteps,
+  onMessageInteraction
 }) => {
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -51,7 +55,10 @@ const ChatContainer: React.FC<ChatContainerProps> = ({
               key={item.id} 
               message={item.message} 
               isUser={item.type === 'user'} 
-              isJobSpec={item.type === 'job_spec'} 
+              isJobSpec={item.type === 'job_spec'}
+              type={item.type as any}
+              isProcessing={item.isProcessing}
+              onInteraction={onMessageInteraction ? (action, data) => onMessageInteraction(item.id, action, data) : undefined}
             />
           ))}
         </>
