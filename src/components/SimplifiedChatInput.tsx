@@ -104,7 +104,7 @@ const SimplifiedChatInput: React.FC<SimplifiedChatInputProps> = ({ onSendMessage
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-6">
       {/* File and Recording Previews */}
       {uploadedFile && (
         <FilePreview file={uploadedFile} onRemove={removeFile} />
@@ -115,73 +115,75 @@ const SimplifiedChatInput: React.FC<SimplifiedChatInputProps> = ({ onSendMessage
       )}
 
       {/* Main Input Container */}
-      <div className="relative border border-border rounded-xl bg-background shadow-sm hover:shadow-md transition-shadow">
+      <div className="relative border-2 border-border rounded-2xl bg-background shadow-lg hover:shadow-xl transition-all duration-200 hover:border-border/80">
         <Textarea
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           onKeyDown={handleKeyPress}
           onFocus={handleFocus}
           placeholder="Explain the role like you would in a kickoff call..."
-          className="min-h-[60px] max-h-[200px] resize-none border-none bg-transparent p-4 pr-16 text-base placeholder:text-muted-foreground/70"
+          className="min-h-[120px] max-h-[300px] resize-none border-none bg-transparent p-6 pr-32 text-lg placeholder:text-muted-foreground/60 leading-relaxed"
           disabled={disabled || isRecording}
         />
         
-        {/* Action Buttons */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-2">
-          {showAllOptions && (
-            <>
-              {/* Voice Recording Button */}
-              {!isRecording ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={startRecording}
-                  disabled={disabled}
-                  className="h-8 w-8 p-0 hover:bg-muted"
-                >
-                  <Mic size={16} />
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={stopRecording}
-                  disabled={disabled}
-                  className="h-8 w-8 p-0 hover:bg-muted text-destructive"
-                >
-                  <Square size={16} />
-                </Button>
-              )}
-
-              {/* File Upload Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleUploadClick}
-                disabled={disabled}
-                className="h-8 w-8 p-0 hover:bg-muted"
-              >
-                <Paperclip size={16} />
-              </Button>
-            </>
+        {/* Action Buttons Container */}
+        <div className="absolute bottom-4 right-4 flex items-center gap-3">
+          {/* Voice Recording Button - Always visible and prominent */}
+          {!isRecording ? (
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={startRecording}
+              disabled={disabled}
+              className="h-12 w-12 p-0 rounded-full hover:bg-primary/10 hover:text-primary transition-all duration-200 group"
+              title="Record voice message"
+            >
+              <Mic size={24} className="group-hover:scale-110 transition-transform duration-200" />
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="lg"
+              onClick={stopRecording}
+              disabled={disabled}
+              className="h-12 w-12 p-0 rounded-full hover:bg-destructive/10 text-destructive animate-pulse"
+              title="Stop recording"
+            >
+              <Square size={24} />
+            </Button>
           )}
 
-          {/* Send Button */}
+          {/* File Upload Button */}
+          {showAllOptions && (
+            <Button
+              variant="ghost"
+              size="default"
+              onClick={handleUploadClick}
+              disabled={disabled}
+              className="h-10 w-10 p-0 rounded-full hover:bg-muted/80 transition-all duration-200"
+              title="Upload file"
+            >
+              <Paperclip size={18} />
+            </Button>
+          )}
+
+          {/* Send Button - More prominent */}
           <Button
             onClick={handleSend}
             disabled={!canSend()}
-            size="sm"
-            className="h-8 w-8 p-0"
+            size="lg"
+            className="h-12 w-12 p-0 rounded-full shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-30"
+            title="Send message"
           >
-            <Send size={14} />
+            <Send size={20} />
           </Button>
         </div>
 
         {/* Recording Indicator */}
         {isRecording && (
-          <div className="absolute bottom-3 left-4 flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="w-2 h-2 bg-destructive rounded-full animate-pulse" />
-            Recording...
+          <div className="absolute bottom-6 left-6 flex items-center gap-3 text-base text-muted-foreground animate-fade-in">
+            <div className="w-3 h-3 bg-destructive rounded-full animate-pulse shadow-md" />
+            <span className="font-medium">Recording...</span>
           </div>
         )}
       </div>
