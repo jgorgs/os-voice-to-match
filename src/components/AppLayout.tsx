@@ -65,12 +65,14 @@ const AppLayout: React.FC = () => {
         currentPositionId={currentPositionId}
         onPositionSelect={handlePositionSelect}
         onNewPosition={handleNewPosition}
+        onPositionUpdate={handlePositionUpdate}
       />
       
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar 
           onNewPosition={handleNewPosition}
           currentPosition={positions.find(p => p.id === currentPositionId)}
+          onPositionUpdate={handlePositionUpdate}
         />
         
         <MainCanvas

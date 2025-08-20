@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, Search, User } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import EditableTitle from './EditableTitle';
 
 interface Position {
   id: string;
@@ -13,16 +14,29 @@ interface Position {
 interface TopBarProps {
   onNewPosition: () => void;
   currentPosition?: Position;
+  onPositionUpdate?: (positionId: string, updates: Partial<Position>) => void;
 }
 
-const TopBar: React.FC<TopBarProps> = ({ onNewPosition, currentPosition }) => {
+const TopBar: React.FC<TopBarProps> = ({ onNewPosition, currentPosition, onPositionUpdate }) => {
+  const handleTitleSave = (newTitle: string) => {
+    if (currentPosition && onPositionUpdate) {
+      onPositionUpdate(currentPosition.id, { title: newTitle });
+    }
+  };
   return (
     <header className="h-16 bg-background border-b border-border flex items-center justify-between px-6">
       {/* Left Section - Current Position */}
       <div className="flex items-center gap-4">
-        <h1 className="text-xl font-semibold text-foreground">
-          {currentPosition ? currentPosition.title : 'Voice to Match'}
-        </h1>
+        {currentPosition ? (
+          <EditableTitle
+            title={currentPosition.title}
+            onSave={handleTitleSave}
+            size="md"
+            autoFocusOnCreate={currentPosition.title === 'New Position'}
+          />
+        ) : (
+          <h1 className="text-xl font-semibold text-foreground">Voice to Match</h1>
+        )}
         {currentPosition && (
           <div className="text-sm text-muted-foreground">
             by OutScout

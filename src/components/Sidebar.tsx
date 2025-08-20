@@ -2,6 +2,7 @@ import React from 'react';
 import { Plus, FileText, Clock, CheckCircle, Edit3 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import EditableTitle from './EditableTitle';
 
 interface Position {
   id: string;
@@ -15,13 +16,15 @@ interface SidebarProps {
   currentPositionId: string | null;
   onPositionSelect: (positionId: string) => void;
   onNewPosition: () => void;
+  onPositionUpdate?: (positionId: string, updates: Partial<Position>) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({
-  positions,
-  currentPositionId,
-  onPositionSelect,
-  onNewPosition
+const Sidebar: React.FC<SidebarProps> = ({ 
+  positions, 
+  currentPositionId, 
+  onPositionSelect, 
+  onNewPosition,
+  onPositionUpdate 
 }) => {
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -83,17 +86,28 @@ const Sidebar: React.FC<SidebarProps> = ({
           {positions.map((position) => (
             <div
               key={position.id}
-              onClick={() => onPositionSelect(position.id)}
-              className={`p-3 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-muted/50 ${
+              className={`p-3 rounded-lg transition-colors duration-200 hover:bg-muted/50 ${
                 currentPositionId === position.id
                   ? 'bg-muted border border-border'
                   : 'hover:bg-muted/30'
               }`}
             >
               <div className="flex items-start justify-between mb-2">
-                <h3 className="font-medium text-sm text-foreground truncate flex-1">
-                  {position.title}
-                </h3>
+                <div 
+                  className="flex-1 min-w-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onPositionSelect(position.id);
+                  }}
+                >
+                  <EditableTitle
+                    title={position.title}
+                    onSave={(newTitle) => onPositionUpdate?.(position.id, { title: newTitle })}
+                    size="sm"
+                    className="w-full cursor-pointer"
+                    autoFocusOnCreate={position.title === 'New Position'}
+                  />
+                </div>
                 <div className="flex items-center gap-1 ml-2">
                   {getStatusIcon(position.status)}
                 </div>
