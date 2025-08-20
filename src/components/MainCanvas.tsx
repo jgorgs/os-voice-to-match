@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import MultiInputTabs from './MultiInputTabs';
 import ChatContainer from './ChatContainer';
 import SimplifiedEmptyState from './SimplifiedEmptyState';
+import ChatModeInput from './ChatModeInput';
 import { useToast } from '../hooks/use-toast';
 
 interface Position {
@@ -13,12 +14,7 @@ interface Position {
 
 interface MainCanvasProps {
   currentPositionId: string | null;
-  chatHistory: any[];
-  addMessage: (message: any) => void;
-  addConfirmationMessage: (userMessage: string) => any;
-  addProcessingMessage: (step: string) => any;
-  addPlanPreview: (searchPlan: any) => any;
-  handleSendMessage: (message: string, audioBlob?: Blob, file?: File) => Promise<any>;
+  chatHistoryManager: any;
   agentProcessing: any;
   onPositionUpdate: (positionId: string, updates: Partial<Position>) => void;
   onCreateNewPosition: () => string; // Returns the new position ID
@@ -26,22 +22,17 @@ interface MainCanvasProps {
 
 const MainCanvas: React.FC<MainCanvasProps> = ({
   currentPositionId,
-  chatHistory,
-  addMessage,
-  addConfirmationMessage,
-  addProcessingMessage,
-  addPlanPreview,
-  handleSendMessage,
+  chatHistoryManager,
   agentProcessing,
   onPositionUpdate,
   onCreateNewPosition
 }) => {
   const { toast } = useToast();
-  
-  // We no longer need these old processing hooks since we use chat-based flow
-  // const { ... } = agentProcessing;
-
   const [isEditingPlan, setIsEditingPlan] = useState(false);
+
+  // Get current position's chat history
+  const chatHistory = chatHistoryManager.getChatHistory(currentPositionId);
+  const hasStartedConversation = chatHistoryManager.hasStartedConversation(currentPositionId);
 
   const onSendMessage = async (message: string, audioBlob?: Blob, file?: File) => {
     let positionId = currentPositionId;
@@ -51,7 +42,7 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
       positionId = onCreateNewPosition();
     }
     
-    const { message: processedMessage, hasFile } = await handleSendMessage(message, audioBlob, file);
+    const { message: processedMessage, hasFile } = await chatHistoryManager.handleSendMessage(positionId, message, audioBlob, file);
     
     // Update position status to In Progress
     if (positionId) {
@@ -59,24 +50,24 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
     }
     
     // Start the enhanced conversational flow
-    startConversationalFlow(processedMessage, hasFile);
+    startConversationalFlow(positionId, processedMessage, hasFile);
   };
 
-  const startConversationalFlow = async (userMessage: string, hasFile: boolean) => {
+  const startConversationalFlow = async (positionId: string, userMessage: string, hasFile: boolean) => {
     // Step 1: Add confirmation message
-    const confirmationMsg = addConfirmationMessage(userMessage);
+    const confirmationMsg = chatHistoryManager.addConfirmationMessage(positionId, userMessage);
     
     // Step 2: Simulate processing with sequential messages
     setTimeout(() => {
-      addProcessingMessage("Analyzing your requirements...");
+      chatHistoryManager.addProcessingMessage(positionId, "Analyzing your requirements...");
     }, 1000);
     
     setTimeout(() => {
-      addProcessingMessage("Researching relevant companies and roles...");  
+      chatHistoryManager.addProcessingMessage(positionId, "Researching relevant companies and roles...");  
     }, 2500);
     
     setTimeout(() => {
-      addProcessingMessage("Building your customized search plan...");
+      chatHistoryManager.addProcessingMessage(positionId, "Building your customized search plan...");
     }, 4000);
     
     // Step 3: Present search plan as interactive chat message
@@ -96,20 +87,20 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
           location: 10
         }
       };
-      addPlanPreview(mockSearchPlan);
+      chatHistoryManager.addPlanPreview(positionId, mockSearchPlan);
     }, 5500);
   };
 
   const handleMessageInteraction = (messageId: string, action: string, data?: any) => {
     const message = chatHistory.find(m => m.id === messageId);
-    if (!message || message.type !== 'plan-preview') return;
+    if (!message || message.type !== 'plan-preview' || !currentPositionId) return;
 
     if (action === 'confirm') {
       // Start search execution in chat
-      addProcessingMessage("Starting parallel search across platforms...");
+      chatHistoryManager.addProcessingMessage(currentPositionId, "Starting parallel search across platforms...");
       
       setTimeout(() => {
-        addProcessingMessage("Searching LinkedIn, Indeed, and company careers pages...");
+        chatHistoryManager.addProcessingMessage(currentPositionId, "Searching LinkedIn, Indeed, and company careers pages...");
       }, 2000);
       
       setTimeout(() => {
@@ -121,11 +112,9 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
           timestamp: new Date(),
           data: { totalResults: 47, topMatches: 3 }
         };
-        addMessage(resultsMessage);
+        chatHistoryManager.addMessage(currentPositionId, resultsMessage);
         
-        if (currentPositionId) {
-          onPositionUpdate(currentPositionId, { status: 'Completed' });
-        }
+        onPositionUpdate(currentPositionId, { status: 'Completed' });
       }, 4000);
       
     } else if (action === 'refine') {
@@ -134,7 +123,9 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
   };
 
   const handlePlanRefinement = (refinement: string) => {
-    addProcessingMessage(`Refining plan based on: "${refinement}"`);
+    if (!currentPositionId) return;
+    
+    chatHistoryManager.addProcessingMessage(currentPositionId, `Refining plan based on: "${refinement}"`);
     
     setTimeout(() => {
       // Generate updated plan based on refinement
@@ -148,7 +139,7 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
         if (refinement.toLowerCase().includes('remote')) {
           updatedPlan.filters.location = 'Remote / Flexible';
         }
-        addPlanPreview(updatedPlan);
+        chatHistoryManager.addPlanPreview(currentPositionId, updatedPlan);
       }
     }, 2000);
   };
@@ -190,12 +181,16 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
             />
           </div>
 
-          {/* Multi-Input Area */}
-          <div className="border-t border-border bg-background p-6">
-            <div className="max-w-4xl mx-auto">
-              <MultiInputTabs onSendMessage={onSendMessage} disabled={agentProcessing.isProcessing} />
+          {/* Input Area - Show MultiInputTabs for new conversations, ChatModeInput for ongoing ones */}
+          {!hasStartedConversation ? (
+            <div className="border-t border-border bg-background p-6">
+              <div className="max-w-4xl mx-auto">
+                <MultiInputTabs onSendMessage={onSendMessage} disabled={agentProcessing.isProcessing} />
+              </div>
             </div>
-          </div>
+          ) : (
+            <ChatModeInput onSendMessage={onSendMessage} disabled={agentProcessing.isProcessing} />
+          )}
         </>
       )}
     </div>

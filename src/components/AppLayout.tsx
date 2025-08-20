@@ -3,7 +3,7 @@ import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import MainCanvas from './MainCanvas';
 import { useAgentProcessing } from '../hooks/useAgentProcessing';
-import { useChatHistory } from '../hooks/useChatHistory';
+import { useChatHistoryManager } from '../hooks/useChatHistoryManager';
 import { useToast } from '../hooks/use-toast';
 import { useSearch } from '../hooks/useSearch';
 import { Position } from '../types';
@@ -16,15 +16,7 @@ const AppLayout: React.FC = () => {
     { id: '3', title: 'Marketing Manager', date: new Date(2024, 0, 22), status: 'Draft' }
   ]);
 
-  const { 
-    chatHistory, 
-    addMessage, 
-    addConfirmationMessage, 
-    addProcessingMessage, 
-    addPlanPreview, 
-    handleSendMessage, 
-    clearHistory 
-  } = useChatHistory();
+  const chatHistoryManager = useChatHistoryManager();
   const agentProcessing = useAgentProcessing();
   const { toast } = useToast();
   
@@ -48,7 +40,7 @@ const AppLayout: React.FC = () => {
     };
     setPositions(prev => [newPosition, ...prev]);
     setCurrentPositionId(newPosition.id);
-    clearHistory();
+    clearSearch(); // Clear search instead of history
     agentProcessing.resetProcessing();
     
     toast({
@@ -61,8 +53,7 @@ const AppLayout: React.FC = () => {
 
   const handlePositionSelect = (positionId: string) => {
     setCurrentPositionId(positionId);
-    // In a real app, this would load the position's chat history
-    clearHistory();
+    clearSearch(); // Clear search but keep chat histories intact
     agentProcessing.resetProcessing();
   };
 
@@ -100,12 +91,7 @@ const AppLayout: React.FC = () => {
         
         <MainCanvas
           currentPositionId={currentPositionId}
-          chatHistory={chatHistory}
-          addMessage={addMessage}
-          addConfirmationMessage={addConfirmationMessage}
-          addProcessingMessage={addProcessingMessage}
-          addPlanPreview={addPlanPreview}
-          handleSendMessage={handleSendMessage}
+          chatHistoryManager={chatHistoryManager}
           agentProcessing={agentProcessing}
           onPositionUpdate={handlePositionUpdate}
           onCreateNewPosition={handleNewPosition}
