@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import ChatContainer from './ChatContainer';
 import SimplifiedEmptyState from './SimplifiedEmptyState';
 import ChatModeInput from './ChatModeInput';
@@ -29,9 +29,21 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
   const { toast } = useToast();
   const [isEditingPlan, setIsEditingPlan] = useState(false);
 
-  // Get current position's chat history
-  const chatHistory = chatHistoryManager.getChatHistory(currentPositionId);
-  const hasStartedConversation = chatHistoryManager.hasStartedConversation(currentPositionId);
+  // Reset editing state when position changes
+  useEffect(() => {
+    setIsEditingPlan(false);
+  }, [currentPositionId]);
+
+  // Memoize chat history and conversation state to ensure proper updates
+  const chatHistory = useMemo(() => 
+    chatHistoryManager.getChatHistory(currentPositionId), 
+    [chatHistoryManager, currentPositionId]
+  );
+  
+  const hasStartedConversation = useMemo(() => 
+    chatHistoryManager.hasStartedConversation(currentPositionId),
+    [chatHistoryManager, currentPositionId]
+  );
 
   const onSendMessage = async (message: string, audioBlob?: Blob, file?: File) => {
     let positionId = currentPositionId;
