@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import MainCanvas from './MainCanvas';
+import { WorkflowManager } from './workflow/WorkflowManager';
 import { useAgentProcessing } from '../hooks/useAgentProcessing';
 import { useChatHistoryManager } from '../hooks/useChatHistoryManager';
 import { useToast } from '../hooks/use-toast';
@@ -114,13 +115,17 @@ const AppLayout: React.FC = () => {
           onSearchClear={clearSearch}
         />
         
-        <MainCanvas
-          currentPositionId={currentPositionId}
-          chatHistoryManager={chatHistoryManager}
-          agentProcessing={agentProcessing}
-          onPositionUpdate={handlePositionUpdate}
-          onCreateNewPosition={handleNewPosition}
-        />
+        {currentPositionId ? (
+          <MainCanvas 
+            currentPositionId={currentPositionId}
+            chatHistoryManager={chatHistoryManager}
+            agentProcessing={agentProcessing}
+            onPositionUpdate={handlePositionUpdate}
+            onCreateNewPosition={handleNewPosition}
+          />
+        ) : (
+          <WorkflowManager />
+        )}
       </div>
     </div>
   );
