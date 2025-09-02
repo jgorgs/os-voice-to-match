@@ -1,10 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Send, Mic, Upload, Paperclip, Square } from 'lucide-react';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import FilePreview from './FilePreview';
 import RecordingPreview from './RecordingPreview';
-import VoiceRecorder from './VoiceRecorder';
+import { useToast } from '@/hooks/use-toast';
 
 interface SimplifiedChatInputProps {
   onSendMessage: (message: string, audioBlob?: Blob, file?: File) => void;
@@ -17,10 +17,17 @@ const SimplifiedChatInput: React.FC<SimplifiedChatInputProps> = ({ onSendMessage
   const [recordedAudio, setRecordedAudio] = useState<Blob | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [showAllOptions, setShowAllOptions] = useState(false);
+  const [recordingTime, setRecordingTime] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const recordingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { toast } = useToast();
 
   const handleSend = async () => {
-    if (disabled) return;
+    if (disabled || isUploading) return;
 
     let message = inputText.trim();
     let audioBlob: Blob | undefined = undefined;
@@ -29,24 +36,60 @@ const SimplifiedChatInput: React.FC<SimplifiedChatInputProps> = ({ onSendMessage
     if (recordedAudio) {
       message = message || 'Voice message';
       audioBlob = recordedAudio;
+      console.log('🎤 Sending audio recording:', { 
+        size: recordedAudio.size, 
+        type: recordedAudio.type 
+      });
     } else if (uploadedFile) {
       if (uploadedFile.type.startsWith('audio/')) {
         message = message || `Audio file: ${uploadedFile.name}`;
         audioBlob = new Blob([uploadedFile], { type: uploadedFile.type });
+        console.log('📁 Sending audio file:', { 
+          name: uploadedFile.name, 
+          size: uploadedFile.size, 
+          type: uploadedFile.type 
+        });
       } else {
         message = message || `File uploaded: ${uploadedFile.name}`;
         fileToProcess = uploadedFile;
+        console.log('📎 Sending file:', { 
+          name: uploadedFile.name, 
+          size: uploadedFile.size, 
+          type: uploadedFile.type 
+        });
       }
     } else if (!message) {
       return;
     }
 
     if (message || audioBlob || fileToProcess) {
-      onSendMessage(message, audioBlob, fileToProcess);
-      setInputText('');
-      setUploadedFile(null);
-      setRecordedAudio(null);
-      setShowAllOptions(false);
+      try {
+        setIsUploading(true);
+        console.log('📤 Starting upload process...');
+        await onSendMessage(message, audioBlob, fileToProcess);
+        
+        // Clear state after successful send
+        setInputText('');
+        setUploadedFile(null);
+        setRecordedAudio(null);
+        setShowAllOptions(false);
+        
+        if (audioBlob || fileToProcess) {
+          toast({
+            title: "Upload successful",
+            description: audioBlob ? "Voice recording sent successfully" : "File uploaded successfully"
+          });
+        }
+      } catch (error) {
+        console.error('❌ Upload failed:', error);
+        toast({
+          title: "Upload failed",
+          description: "There was an error processing your request. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 
@@ -58,8 +101,21 @@ const SimplifiedChatInput: React.FC<SimplifiedChatInputProps> = ({ onSendMessage
   };
 
   const handleRecordingComplete = (audioBlob: Blob) => {
+    console.log('🎤 Recording completed:', { 
+      size: audioBlob.size, 
+      type: audioBlob.type 
+    });
     setRecordedAudio(audioBlob);
     setIsRecording(false);
+    setRecordingTime(0);
+    if (recordingIntervalRef.current) {
+      clearInterval(recordingIntervalRef.current);
+      recordingIntervalRef.current = null;
+    }
+    toast({
+      title: "Recording complete",
+      description: "Your voice message is ready to send"
+    });
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,23 +141,93 @@ const SimplifiedChatInput: React.FC<SimplifiedChatInputProps> = ({ onSendMessage
     setRecordedAudio(null);
   };
 
-  const startRecording = () => {
-    setIsRecording(true);
-    setShowAllOptions(true);
+  const startRecording = async () => {
+    try {
+      console.log('🎤 Starting recording...');
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // Configure MediaRecorder for mp4 format
+      const options = {
+        mimeType: 'audio/mp4'
+      };
+      
+      // Fallback to webm if mp4 is not supported
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'audio/webm';
+      }
+      
+      const mediaRecorder = new MediaRecorder(stream, options);
+      mediaRecorderRef.current = mediaRecorder;
+      chunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          chunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = () => {
+        const mimeType = mediaRecorder.mimeType;
+        const audioBlob = new Blob(chunksRef.current, { type: mimeType });
+        handleRecordingComplete(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsRecording(true);
+      setShowAllOptions(true);
+      setRecordingTime(0);
+      
+      // Start timer
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingTime(prev => prev + 1);
+      }, 1000);
+      
+      toast({
+        title: "Recording started",
+        description: "Speak now, click stop when finished"
+      });
+    } catch (error) {
+      console.error('❌ Error starting recording:', error);
+      toast({
+        title: "Recording failed",
+        description: "Unable to access microphone. Please check permissions.",
+        variant: "destructive"
+      });
+    }
   };
 
   const stopRecording = () => {
-    setIsRecording(false);
+    console.log('🛑 Stopping recording...');
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+        recordingIntervalRef.current = null;
+      }
+    }
   };
 
   const canSend = () => {
-    if (disabled || isRecording) return false;
+    if (disabled || isRecording || isUploading) return false;
     return recordedAudio || inputText.trim() || uploadedFile;
   };
 
   const handleFocus = () => {
     setShowAllOptions(true);
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (recordingIntervalRef.current) {
+        clearInterval(recordingIntervalRef.current);
+      }
+      if (mediaRecorderRef.current && isRecording) {
+        mediaRecorderRef.current.stop();
+      }
+    };
+  }, [isRecording]);
 
   return (
     <div className="w-full space-y-6">
@@ -183,7 +309,15 @@ const SimplifiedChatInput: React.FC<SimplifiedChatInputProps> = ({ onSendMessage
         {isRecording && (
           <div className="absolute bottom-6 left-6 flex items-center gap-3 text-base text-muted-foreground animate-fade-in">
             <div className="w-3 h-3 bg-destructive rounded-full animate-pulse shadow-md" />
-            <span className="font-medium">Recording...</span>
+            <span className="font-medium">Recording... {Math.floor(recordingTime / 60)}:{(recordingTime % 60).toString().padStart(2, '0')}</span>
+          </div>
+        )}
+        
+        {/* Upload Indicator */}
+        {isUploading && (
+          <div className="absolute bottom-6 left-6 flex items-center gap-3 text-base text-muted-foreground animate-fade-in">
+            <div className="w-3 h-3 bg-primary rounded-full animate-pulse shadow-md" />
+            <span className="font-medium">Uploading...</span>
           </div>
         )}
       </div>
@@ -197,16 +331,6 @@ const SimplifiedChatInput: React.FC<SimplifiedChatInputProps> = ({ onSendMessage
         className="hidden"
       />
 
-      {/* Voice Recorder Component (Hidden) */}
-      {isRecording && (
-        <div className="hidden">
-          <VoiceRecorder
-            onRecordingComplete={handleRecordingComplete}
-            isRecording={isRecording}
-            setIsRecording={setIsRecording}
-          />
-        </div>
-      )}
     </div>
   );
 };
