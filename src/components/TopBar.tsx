@@ -53,7 +53,7 @@ const TopBar: React.FC<TopBarProps> = ({
         )}
         {currentPosition && (
           <div className="text-sm text-muted-foreground">
-            by OutScout
+            {currentPosition.company}
           </div>
         )}
       </div>
