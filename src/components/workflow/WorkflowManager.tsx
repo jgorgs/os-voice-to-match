@@ -17,7 +17,7 @@ import {
 import { EnhancedChatInput } from './EnhancedChatInput';
 import { JobSpecConfirmation } from './JobSpecConfirmation';
 import { useJobSpecification } from '@/hooks/useJobSpecification';
-import { JobSpecification, SearchLayer, SEARCH_LAYER_COSTS, DEFAULT_WEIGHTS } from '@/types/workflow';
+import { JobSpecification } from '@/types/workflow';
 import { useToast } from '@/hooks/use-toast';
 
 type WorkflowStep = 'input' | 'parsing' | 'confirmation' | 'searching' | 'results';
@@ -30,8 +30,6 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
   onComplete,
 }) => {
   const [currentStep, setCurrentStep] = useState<WorkflowStep>('input');
-  const [selectedLayers, setSelectedLayers] = useState<SearchLayer[]>(['internal']);
-  const [searchConfig, setSearchConfig] = useState(DEFAULT_WEIGHTS);
   const [parsingProgress, setParsingProgress] = useState(0);
   const [searchProgress, setSearchProgress] = useState(0);
   const [mockResults, setMockResults] = useState<any[]>([]);
@@ -47,15 +45,12 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
   
   const { toast } = useToast();
 
-  const estimatedCost = selectedLayers.reduce((total, layer) => 
-    total + SEARCH_LAYER_COSTS[layer], 0
-  );
 
   const handleInput = useCallback(async (data: {
     text?: string;
-    audioBlob?: Blob;
-    audioFileName?: string;
-    uploadedFile?: File;
+    audioPath?: string;
+    filePath?: string;
+    hasFile?: boolean;
   }) => {
     setCurrentStep('parsing');
     setParsingProgress(0);
@@ -65,8 +60,8 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
       'New Position', // Will be updated during parsing
       'Company Name', // Will be updated during parsing
       data.text,
-      data.audioFileName,
-      data.uploadedFile?.name
+      data.audioPath,
+      data.filePath
     );
 
     if (!newJobSpec) {
@@ -148,7 +143,6 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
             experience_score: Math.floor(Math.random() * 30) + 70,
             location_score: Math.floor(Math.random() * 30) + 70,
             company_score: Math.floor(Math.random() * 30) + 70,
-            found_via_layer: selectedLayers[Math.floor(Math.random() * selectedLayers.length)],
           }));
 
           setMockResults(mockCandidates);
@@ -161,7 +155,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
         }
       }, 200);
     }
-  }, [jobSpec, confirmJobSpec, selectedLayers, toast]);
+  }, [jobSpec, confirmJobSpec, toast]);
 
   const handleBack = useCallback(() => {
     if (currentStep === 'confirmation') {
@@ -217,7 +211,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
         {getStepIndicator()}
         
         <div className="text-center space-y-4">
-          <h1 className="text-3xl font-bold text-foreground">Create Job Specification</h1>
+          <h1 className="text-3xl font-bold text-foreground">Let's Kick Off Your Search</h1>
           <p className="text-lg text-muted-foreground">
             Describe the position, upload a job description, or record your requirements
           </p>
@@ -230,49 +224,6 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
           />
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5" />
-              Search Configuration
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Search Layers</label>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {(['internal', 'similar_companies', 'external'] as SearchLayer[]).map(layer => (
-                    <Button
-                      key={layer}
-                      variant={selectedLayers.includes(layer) ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setSelectedLayers(prev => 
-                          prev.includes(layer) 
-                            ? prev.filter(l => l !== layer)
-                            : [...prev, layer]
-                        );
-                      }}
-                    >
-                      {layer.charAt(0).toUpperCase() + layer.slice(1).replace('_', ' ')}
-                      <Badge variant="secondary" className="ml-2">
-                        {SEARCH_LAYER_COSTS[layer] === 0 ? 'Free' : `$${(SEARCH_LAYER_COSTS[layer] / 100).toFixed(2)}`}
-                      </Badge>
-                    </Button>
-                  ))}
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center pt-4 border-t">
-                <span className="font-medium">Estimated Cost:</span>
-                <span className="text-lg font-bold">
-                  ${(estimatedCost / 100).toFixed(2)}
-                </span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     );
   }
@@ -315,8 +266,6 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
           onEdit={handleEdit}
           onConfirm={handleConfirm}
           onBack={handleBack}
-          estimatedCost={estimatedCost}
-          selectedLayers={selectedLayers}
         />
       </div>
     );
@@ -336,7 +285,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
             <div>
               <h2 className="text-2xl font-semibold">Searching for Candidates</h2>
               <p className="text-muted-foreground mt-2">
-                Running search across {selectedLayers.length} layer{selectedLayers.length > 1 ? 's' : ''}...
+                Searching our database and external sources for the best candidates...
               </p>
             </div>
             
@@ -345,15 +294,6 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
               <p className="text-sm text-muted-foreground">{searchProgress}% complete</p>
             </div>
             
-            <div className="flex justify-center">
-              <div className="flex gap-2">
-                {selectedLayers.map(layer => (
-                  <Badge key={layer} variant="outline">
-                    {layer.charAt(0).toUpperCase() + layer.slice(1).replace('_', ' ')}
-                  </Badge>
-                ))}
-              </div>
-            </div>
           </div>
         </Card>
       </div>
@@ -405,7 +345,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({
                     {candidate.overall_score}%
                   </div>
                   <Badge variant="outline">
-                    {candidate.found_via_layer.replace('_', ' ')}
+                    Found via search
                   </Badge>
                 </div>
               </div>

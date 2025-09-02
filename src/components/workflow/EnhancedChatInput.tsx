@@ -17,13 +17,14 @@ import {
 } from 'lucide-react';
 import VoiceRecorder from '@/components/VoiceRecorder';
 import SimpleAudioPlayer from './SimpleAudioPlayer';
+import { uploadAudioFile } from '@/utils/audioUpload';
 
 interface EnhancedChatInputProps {
   onSubmit: (data: {
     text?: string;
-    audioBlob?: Blob;
-    audioFileName?: string;
-    uploadedFile?: File;
+    audioPath?: string;
+    filePath?: string;
+    hasFile?: boolean;
   }) => void;
   disabled?: boolean;
   placeholder?: string;
@@ -38,45 +39,61 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
 }) => {
   const [inputText, setInputText] = useState('');
   const [isRecording, setIsRecording] = useState(false);
-  const [recordedAudio, setRecordedAudio] = useState<{
-    blob: Blob;
-    url: string;
-    fileName: string;
-  } | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const canSubmit = !disabled && !isProcessing && (
+  const canSubmit = !disabled && !isSubmitting && (
     inputText.trim().length > 0 || 
-    recordedAudio || 
+    audioBlob || 
     uploadedFile
   );
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
 
-    setIsProcessing(true);
-    
-    try {
-      await onSubmit({
-        text: inputText.trim() || undefined,
-        audioBlob: recordedAudio?.blob,
-        audioFileName: recordedAudio?.fileName,
-        uploadedFile: uploadedFile || undefined,
-      });
+    setIsSubmitting(true);
 
+    try {
+      let audioPath = null;
+      
+      // Handle audio upload if present
+      if (audioBlob) {
+        audioPath = await uploadAudioFile(audioBlob);
+        if (!audioPath) {
+          throw new Error('Failed to upload audio file');
+        }
+      }
+
+      // Handle file upload if present
+      let filePath = null;
+      if (uploadedFile) {
+        // TODO: Implement file upload to Supabase storage
+        console.log('File upload not yet implemented:', uploadedFile.name);
+      }
+
+      onSubmit({
+        text: inputText,
+        audioPath,
+        filePath,
+        hasFile: !!uploadedFile
+      });
+      
       // Reset form
       setInputText('');
-      setRecordedAudio(null);
+      setAudioBlob(null);
+      setAudioUrl(null);
       setUploadedFile(null);
-      setUploadProgress(0);
+      setIsRecording(false);
     } catch (error) {
       console.error('Error submitting:', error);
+      // TODO: Add error toast notification
     } finally {
-      setIsProcessing(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -95,10 +112,9 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
     setIsRecording(false);
   };
 
-  const handleRecordingComplete = (audioBlob: Blob) => {
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const fileName = `recording-${Date.now()}.webm`;
-    setRecordedAudio({ blob: audioBlob, url: audioUrl, fileName });
+  const handleRecordingComplete = (blob: Blob) => {
+    setAudioBlob(blob);
+    setAudioUrl(URL.createObjectURL(blob));
     setIsRecording(false);
   };
 
@@ -135,10 +151,11 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
   };
 
   const removeRecording = () => {
-    if (recordedAudio) {
-      URL.revokeObjectURL(recordedAudio.url);
-      setRecordedAudio(null);
+    if (audioUrl) {
+      URL.revokeObjectURL(audioUrl);
+      setAudioUrl(null);
     }
+    setAudioBlob(null);
   };
 
   const removeFile = () => {
@@ -196,7 +213,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
       )}
 
       {/* Audio Preview */}
-      {recordedAudio && (
+      {audioUrl && (
         <Card className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -207,7 +224,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
               <X className="w-4 h-4" />
             </Button>
           </div>
-          <SimpleAudioPlayer audioUrl={recordedAudio.url} />
+          <SimpleAudioPlayer audioUrl={audioUrl} />
         </Card>
       )}
 
@@ -219,7 +236,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
           onKeyPress={handleKeyPress}
           placeholder={placeholder}
           className="min-h-[120px] pr-24 resize-none"
-          disabled={disabled || isProcessing}
+          disabled={disabled || isSubmitting}
         />
         
         {/* Input Controls */}
@@ -230,7 +247,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
             variant="ghost"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
-            disabled={disabled || isProcessing}
+            disabled={disabled || isSubmitting}
             title="Upload file"
           >
             <Paperclip className="w-4 h-4" />
@@ -242,7 +259,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
             variant="ghost"
             size="sm"
             onClick={isRecording ? stopRecording : startRecording}
-            disabled={disabled || isProcessing}
+            disabled={disabled || isSubmitting}
             title={isRecording ? "Stop recording" : "Start recording"}
             className={isRecording ? "text-red-500 hover:text-red-600" : ""}
           >
@@ -261,7 +278,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
             disabled={!canSubmit}
             title="Submit"
           >
-            {isProcessing ? (
+            {isSubmitting ? (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
             ) : (
               <Send className="w-4 h-4" />
@@ -278,7 +295,7 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
         </div>
       )}
 
-      {isProcessing && (
+      {isSubmitting && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="w-4 h-4 border-2 border-muted-foreground border-t-transparent rounded-full animate-spin" />
           Processing your input...

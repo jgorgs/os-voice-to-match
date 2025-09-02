@@ -16,15 +16,13 @@ import {
   AlertCircle,
   Clock
 } from 'lucide-react';
-import { JobSpecification, SEARCH_LAYER_COSTS, SearchLayer } from '@/types/workflow';
+import { JobSpecification } from '@/types/workflow';
 
 interface JobSpecConfirmationProps {
   jobSpec: JobSpecification;
   onEdit: (updates: Partial<JobSpecification>) => void;
   onConfirm: (confirmation_notes?: string) => void;
   onBack: () => void;
-  estimatedCost: number;
-  selectedLayers: SearchLayer[];
 }
 
 export const JobSpecConfirmation: React.FC<JobSpecConfirmationProps> = ({
@@ -32,8 +30,6 @@ export const JobSpecConfirmation: React.FC<JobSpecConfirmationProps> = ({
   onEdit,
   onConfirm,
   onBack,
-  estimatedCost,
-  selectedLayers,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedSpec, setEditedSpec] = useState(jobSpec);
@@ -59,13 +55,6 @@ export const JobSpecConfirmation: React.FC<JobSpecConfirmationProps> = ({
     return `$${(low || high)?.toLocaleString()}`;
   };
 
-  const getCostBreakdown = () => {
-    return selectedLayers.map(layer => ({
-      layer,
-      cost: SEARCH_LAYER_COSTS[layer],
-      name: layer.charAt(0).toUpperCase() + layer.slice(1).replace('_', ' ')
-    }));
-  };
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -255,32 +244,6 @@ export const JobSpecConfirmation: React.FC<JobSpecConfirmationProps> = ({
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Search Configuration */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="w-5 h-5" />
-                Search Cost
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {getCostBreakdown().map(({ layer, cost, name }) => (
-                  <div key={layer} className="flex justify-between items-center text-sm">
-                    <span>{name}</span>
-                    <span className={cost === 0 ? 'text-green-600' : 'text-foreground'}>
-                      {cost === 0 ? 'Free' : `$${(cost / 100).toFixed(2)}`}
-                    </span>
-                  </div>
-                ))}
-                <Separator />
-                <div className="flex justify-between items-center font-medium">
-                  <span>Total Estimated</span>
-                  <span>${(estimatedCost / 100).toFixed(2)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Job Details */}
           <Card>

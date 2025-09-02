@@ -1,7 +1,6 @@
 // Enhanced types for the production workflow
 
 export type JobSpecStatus = 'draft' | 'confirmed' | 'searching' | 'completed' | 'archived';
-export type SearchLayer = 'internal' | 'similar_companies' | 'external';
 export type CandidateStatus = 'pending' | 'approved' | 'rejected' | 'interviewed' | 'hired';
 
 export interface JobSpecification {
@@ -57,41 +56,13 @@ export interface JobSpecification {
   confirmation_notes?: string;
 }
 
-export interface SearchConfiguration {
-  id: string;
-  job_spec_id: string;
-  created_at: string;
-  
-  // Search settings
-  enabled_layers: SearchLayer[];
-  max_candidates_per_layer: number;
-  
-  // Scoring weights (0-100)
-  skills_weight: number;
-  experience_weight: number;
-  location_weight: number;
-  company_weight: number;
-  
-  // Cost tracking
-  estimated_cost_cents: number;
-  actual_cost_cents?: number;
-  
-  // Status
-  is_active: boolean;
-  completed_at?: string;
-}
-
 export interface CandidateMatch {
   id: string;
-  search_config_id: string;
   job_spec_id: string;
   created_at: string;
   
   // Candidate reference
   candidate_id: number;
-  
-  // Search layer that found this candidate
-  found_via_layer: SearchLayer;
   
   // Scoring
   overall_score: number;
@@ -150,25 +121,7 @@ export interface SearchSession {
   approved_candidates: number;
   rejected_candidates: number;
   
-  // Cost tracking
-  total_cost_cents: number;
-  
   // Session status
   is_active: boolean;
   created_by?: string;
 }
-
-// Cost estimation constants
-export const SEARCH_LAYER_COSTS = {
-  internal: 0, // Free - uses existing database
-  similar_companies: 50, // Medium cost - $0.50 per search
-  external: 200, // High cost - $2.00 per search
-} as const;
-
-// Default scoring weights
-export const DEFAULT_WEIGHTS = {
-  skills_weight: 40,
-  experience_weight: 30,
-  location_weight: 20,
-  company_weight: 10,
-} as const;

@@ -81,13 +81,6 @@ export type Database = {
             referencedRelation: "job_specifications"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "candidate_matches_search_config_id_fkey"
-            columns: ["search_config_id"]
-            isOneToOne: false
-            referencedRelation: "search_configurations"
-            referencedColumns: ["id"]
-          },
         ]
       }
       candidates: {
@@ -1425,62 +1418,6 @@ export type Database = {
           },
           {
             foreignKeyName: "recruiter_feedback_job_spec_id_fkey"
-            columns: ["job_spec_id"]
-            isOneToOne: false
-            referencedRelation: "job_specifications"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      search_configurations: {
-        Row: {
-          actual_cost_cents: number | null
-          company_weight: number
-          completed_at: string | null
-          created_at: string
-          enabled_layers: Database["public"]["Enums"]["search_layer"][]
-          estimated_cost_cents: number
-          experience_weight: number
-          id: string
-          is_active: boolean
-          job_spec_id: string
-          location_weight: number
-          max_candidates_per_layer: number
-          skills_weight: number
-        }
-        Insert: {
-          actual_cost_cents?: number | null
-          company_weight?: number
-          completed_at?: string | null
-          created_at?: string
-          enabled_layers?: Database["public"]["Enums"]["search_layer"][]
-          estimated_cost_cents?: number
-          experience_weight?: number
-          id?: string
-          is_active?: boolean
-          job_spec_id: string
-          location_weight?: number
-          max_candidates_per_layer?: number
-          skills_weight?: number
-        }
-        Update: {
-          actual_cost_cents?: number | null
-          company_weight?: number
-          completed_at?: string | null
-          created_at?: string
-          enabled_layers?: Database["public"]["Enums"]["search_layer"][]
-          estimated_cost_cents?: number
-          experience_weight?: number
-          id?: string
-          is_active?: boolean
-          job_spec_id?: string
-          location_weight?: number
-          max_candidates_per_layer?: number
-          skills_weight?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "search_configurations_job_spec_id_fkey"
             columns: ["job_spec_id"]
             isOneToOne: false
             referencedRelation: "job_specifications"
