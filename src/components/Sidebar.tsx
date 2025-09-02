@@ -1,6 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Button } from './ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from './ui/alert-dialog';
 import { Position } from '../types';
 
 interface SidebarProps {
@@ -20,6 +30,26 @@ const Sidebar: React.FC<SidebarProps> = ({
   onPositionDelete,
   searchQuery = ''
 }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [positionToDelete, setPositionToDelete] = useState<Position | null>(null);
+
+  const handleDeleteClick = (position: Position) => {
+    setPositionToDelete(position);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (positionToDelete) {
+      onPositionDelete(positionToDelete.id);
+    }
+    setDeleteDialogOpen(false);
+    setPositionToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setPositionToDelete(null);
+  };
 
   const formatDate = (date: Date) => {
     const now = new Date();
@@ -95,7 +125,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               <Button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onPositionDelete(position.id);
+                  handleDeleteClick(position);
                 }}
                 variant="ghost"
                 size="icon"
@@ -107,6 +137,25 @@ const Sidebar: React.FC<SidebarProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Position</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{positionToDelete?.title}" at {positionToDelete?.company}? 
+              This action cannot be undone and will remove all associated chat history.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleCancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
     </div>
   );
