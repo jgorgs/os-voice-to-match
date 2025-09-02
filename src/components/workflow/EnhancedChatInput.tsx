@@ -105,10 +105,12 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
   };
 
   const startRecording = () => {
+    // Recording will be handled by the VoiceRecorder component
     setIsRecording(true);
   };
 
   const stopRecording = () => {
+    // Recording will be handled by the VoiceRecorder component  
     setIsRecording(false);
   };
 
@@ -253,22 +255,12 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
             <Paperclip className="w-4 h-4" />
           </Button>
           
-          {/* Voice Recording */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={disabled || isSubmitting}
-            title={isRecording ? "Stop recording" : "Start recording"}
-            className={isRecording ? "text-red-500 hover:text-red-600" : ""}
-          >
-            {isRecording ? (
-              <MicOff className="w-4 h-4" />
-            ) : (
-              <Mic className="w-4 h-4" />
-            )}
-          </Button>
+          {/* Voice Recording - This will trigger the hidden VoiceRecorder */}
+          <VoiceRecorder
+            onRecordingComplete={handleRecordingComplete}
+            isRecording={isRecording}
+            setIsRecording={setIsRecording}
+          />
           
           {/* Submit */}
           <Button
@@ -311,14 +303,6 @@ export const EnhancedChatInput: React.FC<EnhancedChatInputProps> = ({
         onChange={handleFileUpload}
       />
 
-      {/* Hidden Voice Recorder */}
-      <div className="hidden">
-        <VoiceRecorder
-          onRecordingComplete={handleRecordingComplete}
-          isRecording={isRecording}
-          setIsRecording={setIsRecording}
-        />
-      </div>
     </div>
   );
 };
