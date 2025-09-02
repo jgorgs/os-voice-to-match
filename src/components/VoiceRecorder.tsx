@@ -1,6 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Mic, Square } from 'lucide-react';
+import { Button } from './ui/button';
 
 interface VoiceRecorderProps {
   onRecordingComplete: (audioBlob: Blob) => void;
@@ -70,17 +71,17 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   };
 
   return (
-    <button
+    <Button
+      type="button"
+      variant="ghost"
+      size="sm"
       onClick={handleClick}
-      className={`p-3 rounded-full transition-all duration-200 ${
-        isRecording
-          ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
-          : 'bg-gray-100 hover:bg-gray-200 text-gray-600'
-      }`}
-      title={isRecording ? 'Stop recording' : 'Start recording'}
+      disabled={false}
+      title={isRecording ? "Stop recording" : "Start recording"}
+      className={isRecording ? "text-red-500 hover:text-red-600" : ""}
     >
-      {isRecording ? <Square size={20} /> : <Mic size={20} />}
-    </button>
+      {isRecording ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+    </Button>
   );
 };
 

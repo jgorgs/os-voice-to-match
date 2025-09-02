@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import MainCanvas from './MainCanvas';
-import { WorkflowManager } from './workflow/WorkflowManager';
+import SimplifiedEmptyState from './SimplifiedEmptyState';
+import { useWorkflowIntegration } from '../hooks/useWorkflowIntegration';
 import { useAgentProcessing } from '../hooks/useAgentProcessing';
 import { useChatHistoryManager } from '../hooks/useChatHistoryManager';
 import { useToast } from '../hooks/use-toast';
@@ -20,6 +21,7 @@ const AppLayout: React.FC = () => {
   const chatHistoryManager = useChatHistoryManager();
   const agentProcessing = useAgentProcessing();
   const { toast } = useToast();
+  const { isProcessing, handleInput } = useWorkflowIntegration();
   
   // Search functionality
   const {
@@ -124,7 +126,20 @@ const AppLayout: React.FC = () => {
             onCreateNewPosition={handleNewPosition}
           />
         ) : (
-          <WorkflowManager />
+          <SimplifiedEmptyState 
+            onSendMessage={async (message, audioBlob, file) => {
+              // Create a new position and handle the input processing
+              const newPositionId = handleNewPosition();
+              
+              // Process the input through the workflow
+              const result = await handleInput(message, audioBlob, file, newPositionId);
+              
+              if (result.success) {
+                console.log('Successfully processed input for new position:', newPositionId);
+              }
+            }}
+            disabled={isProcessing}
+          />
         )}
       </div>
     </div>
