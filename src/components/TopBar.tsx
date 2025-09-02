@@ -41,15 +41,13 @@ const TopBar: React.FC<TopBarProps> = ({
     <header className="h-16 bg-background border-b border-border relative flex items-center px-6">
       {/* Left Section - Current Position */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
-        {currentPosition ? (
+        {currentPosition && (
           <EditableTitle
             title={currentPosition.title}
             onSave={handleTitleSave}
             size="md"
             autoFocusOnCreate={currentPosition.title === 'New Position'}
           />
-        ) : (
-          <h1 className="text-xl font-semibold text-foreground">Voice to Match</h1>
         )}
         {currentPosition && (
           <div className="text-sm text-muted-foreground">
