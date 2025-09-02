@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { Position } from '../types';
 
@@ -8,6 +8,7 @@ interface SidebarProps {
   currentPositionId: string | null;
   onPositionSelect: (positionId: string) => void;
   onNewPosition: () => void;
+  onPositionDelete: (positionId: string) => void;
   searchQuery?: string;
 }
 
@@ -16,6 +17,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   currentPositionId, 
   onPositionSelect, 
   onNewPosition,
+  onPositionDelete,
   searchQuery = ''
 }) => {
 
@@ -66,26 +68,41 @@ const Sidebar: React.FC<SidebarProps> = ({
           {positions.map((position) => (
             <div
               key={position.id}
-              onClick={() => onPositionSelect(position.id)}
-              className={`p-3 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-muted/50 ${
+              className={`p-3 rounded-lg transition-colors duration-200 hover:bg-muted/50 relative group ${
                 currentPositionId === position.id
                   ? 'bg-muted border border-border'
                   : 'hover:bg-muted/30'
               }`}
             >
-              <div className="space-y-1">
-                <h3 className="font-medium text-sm text-foreground truncate">
-                  {searchQuery ? highlightMatch(position.title, searchQuery) : position.title}
-                </h3>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="truncate">
-                    {searchQuery ? highlightMatch(position.company, searchQuery) : position.company}
-                  </span>
-                  <span className="ml-2 flex-shrink-0">
-                    {formatDate(position.date)}
-                  </span>
+              <div 
+                onClick={() => onPositionSelect(position.id)}
+                className="cursor-pointer"
+              >
+                <div className="space-y-1 pr-8">
+                  <h3 className="font-medium text-sm text-foreground truncate">
+                    {searchQuery ? highlightMatch(position.title, searchQuery) : position.title}
+                  </h3>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span className="truncate">
+                      {searchQuery ? highlightMatch(position.company, searchQuery) : position.company}
+                    </span>
+                    <span className="ml-2 flex-shrink-0">
+                      {formatDate(position.date)}
+                    </span>
+                  </div>
                 </div>
               </div>
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPositionDelete(position.id);
+                }}
+                variant="ghost"
+                size="icon"
+                className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground"
+              >
+                <X size={12} />
+              </Button>
             </div>
           ))}
         </div>

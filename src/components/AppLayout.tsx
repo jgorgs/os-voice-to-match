@@ -66,6 +66,29 @@ const AppLayout: React.FC = () => {
     );
   };
 
+  const handlePositionDelete = (positionId: string) => {
+    // If deleting the current position, switch to another position or null
+    if (currentPositionId === positionId) {
+      const remainingPositions = positions.filter(p => p.id !== positionId);
+      if (remainingPositions.length > 0) {
+        setCurrentPositionId(remainingPositions[0].id);
+      } else {
+        setCurrentPositionId(null);
+      }
+    }
+    
+    // Remove the position from the list
+    setPositions(prev => prev.filter(pos => pos.id !== positionId));
+    
+    // Clear any related chat history for this position
+    chatHistoryManager.clearPositionHistory(positionId);
+    
+    toast({
+      title: "Position Deleted",
+      description: "The position has been removed.",
+    });
+  };
+
   return (
     <div className="flex h-screen bg-background">
       <Sidebar
@@ -73,6 +96,7 @@ const AppLayout: React.FC = () => {
         currentPositionId={currentPositionId}
         onPositionSelect={handlePositionSelect}
         onNewPosition={handleNewPosition}
+        onPositionDelete={handlePositionDelete}
         searchQuery={searchQuery}
       />
       
