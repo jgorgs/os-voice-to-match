@@ -38,9 +38,9 @@ const TopBar: React.FC<TopBarProps> = ({
     }
   };
   return (
-    <header className="h-16 bg-background border-b border-border flex items-center justify-between px-6">
+    <header className="h-16 bg-background border-b border-border relative flex items-center px-6">
       {/* Left Section - Current Position */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 flex-1 min-w-0">
         {currentPosition ? (
           <EditableTitle
             title={currentPosition.title}
@@ -58,8 +58,8 @@ const TopBar: React.FC<TopBarProps> = ({
         )}
       </div>
 
-      {/* Center Section - Search */}
-      <div className="flex-1 max-w-md mx-8">
+      {/* Center Section - Search - Absolutely positioned to stay centered */}
+      <div className="absolute left-1/2 transform -translate-x-1/2 w-96">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
           <Input
@@ -92,7 +92,7 @@ const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       {/* Right Section - Actions */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-1 justify-end">
         <Button
           variant="ghost"
           size="sm"
