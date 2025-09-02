@@ -11,9 +11,9 @@ import { Position } from '../types';
 const AppLayout: React.FC = () => {
   const [currentPositionId, setCurrentPositionId] = useState<string | null>(null);
   const [positions, setPositions] = useState<Position[]>([
-    { id: '1', title: 'Senior Software Engineer', date: new Date(2024, 0, 15), status: 'Completed' },
-    { id: '2', title: 'Product Designer', date: new Date(2024, 0, 20), status: 'In Progress' },
-    { id: '3', title: 'Marketing Manager', date: new Date(2024, 0, 22), status: 'Draft' }
+    { id: '1', title: 'Senior Software Engineer', company: 'Acme Corp', date: new Date(2024, 0, 15) },
+    { id: '2', title: 'Product Designer', company: 'TechStart Inc', date: new Date(2024, 0, 20) },
+    { id: '3', title: 'Marketing Manager', company: 'Global Solutions Ltd', date: new Date(2024, 0, 22) }
   ]);
 
   const chatHistoryManager = useChatHistoryManager();
@@ -35,8 +35,8 @@ const AppLayout: React.FC = () => {
     const newPosition: Position = {
       id: Date.now().toString(),
       title: 'New Position',
-      date: new Date(),
-      status: 'Draft'
+      company: 'Company Name',
+      date: new Date()
     };
     setPositions(prev => [newPosition, ...prev]);
     setCurrentPositionId(newPosition.id);

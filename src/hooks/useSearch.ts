@@ -11,7 +11,7 @@ export const useSearch = (positions: Position[]) => {
     const searchTerm = query.toLowerCase();
     return positions.filter(position => 
       position.title.toLowerCase().includes(searchTerm) ||
-      position.status.toLowerCase().includes(searchTerm)
+      position.company.toLowerCase().includes(searchTerm)
     );
   }, [positions, query]);
 

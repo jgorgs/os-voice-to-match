@@ -1,7 +1,6 @@
 import React from 'react';
-import { Plus, FileText, Clock, CheckCircle, Edit3 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from './ui/button';
-import { Badge } from './ui/badge';
 import { Position } from '../types';
 
 interface SidebarProps {
@@ -19,31 +18,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   onNewPosition,
   searchQuery = ''
 }) => {
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return <CheckCircle size={14} className="text-green-500" />;
-      case 'In Progress':
-        return <Clock size={14} className="text-blue-500" />;
-      case 'Draft':
-        return <Edit3 size={14} className="text-orange-500" />;
-      default:
-        return <FileText size={14} className="text-muted-foreground" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
-      case 'In Progress':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
-      case 'Draft':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
-    }
-  };
 
   const formatDate = (date: Date) => {
     const now = new Date();
@@ -99,37 +73,24 @@ const Sidebar: React.FC<SidebarProps> = ({
                   : 'hover:bg-muted/30'
               }`}
             >
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="font-medium text-sm text-foreground truncate flex-1">
+              <div className="space-y-1">
+                <h3 className="font-medium text-sm text-foreground truncate">
                   {searchQuery ? highlightMatch(position.title, searchQuery) : position.title}
                 </h3>
-                <div className="flex items-center gap-1 ml-2">
-                  {getStatusIcon(position.status)}
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="truncate">
+                    {searchQuery ? highlightMatch(position.company, searchQuery) : position.company}
+                  </span>
+                  <span className="ml-2 flex-shrink-0">
+                    {formatDate(position.date)}
+                  </span>
                 </div>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">
-                  {formatDate(position.date)}
-                </span>
-                <Badge
-                  variant="secondary"
-                  className={`text-xs px-2 py-0.5 ${getStatusColor(position.status)}`}
-                >
-                  {position.status}
-                </Badge>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-border">
-        <div className="text-xs text-muted-foreground text-center">
-          Voice to Match by OutScout
-        </div>
-      </div>
     </div>
   );
 };

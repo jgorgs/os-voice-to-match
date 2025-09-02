@@ -1,8 +1,6 @@
 import React from 'react';
 import { Position } from '../types';
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from './ui/command';
-import { FileText, Clock, CheckCircle, Edit3 } from 'lucide-react';
-import { Badge } from './ui/badge';
 
 interface SearchDropdownProps {
   positions: Position[];
@@ -19,32 +17,6 @@ const SearchDropdown: React.FC<SearchDropdownProps> = ({
   onSelect,
   currentPositionId
 }) => {
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return <CheckCircle size={14} className="text-green-500" />;
-      case 'In Progress':
-        return <Clock size={14} className="text-blue-500" />;
-      case 'Draft':
-        return <Edit3 size={14} className="text-orange-500" />;
-      default:
-        return <FileText size={14} className="text-muted-foreground" />;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Completed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
-      case 'In Progress':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100';
-      case 'Draft':
-        return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100';
-      default:
-        return 'bg-muted text-muted-foreground';
-    }
-  };
-
   const formatDate = (date: Date) => {
     const now = new Date();
     const diffTime = Math.abs(now.getTime() - date.getTime());
@@ -90,25 +62,17 @@ const SearchDropdown: React.FC<SearchDropdownProps> = ({
                     currentPositionId === position.id ? 'bg-accent' : ''
                   }`}
                 >
-                  <div className="flex items-start justify-between w-full">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        {getStatusIcon(position.status)}
-                        <h4 className="font-medium text-sm truncate">
-                          {highlightMatch(position.title, query)}
-                        </h4>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">
-                          {formatDate(position.date)}
-                        </span>
-                        <Badge
-                          variant="secondary"
-                          className={`text-xs px-2 py-0.5 ${getStatusColor(position.status)}`}
-                        >
-                          {position.status}
-                        </Badge>
-                      </div>
+                  <div className="space-y-1 w-full">
+                    <h4 className="font-medium text-sm truncate">
+                      {highlightMatch(position.title, query)}
+                    </h4>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                      <span className="truncate">
+                        {highlightMatch(position.company, query)}
+                      </span>
+                      <span className="ml-2 flex-shrink-0">
+                        {formatDate(position.date)}
+                      </span>
                     </div>
                   </div>
                 </CommandItem>

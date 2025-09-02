@@ -1,8 +1,8 @@
 export interface Position {
   id: string;
   title: string;
+  company: string;
   date: Date;
-  status: 'In Progress' | 'Completed' | 'Draft';
 }
 
 export interface SearchState {
