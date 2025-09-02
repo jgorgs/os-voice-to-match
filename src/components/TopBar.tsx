@@ -37,21 +37,32 @@ const TopBar: React.FC<TopBarProps> = ({
       onPositionUpdate(currentPosition.id, { title: newTitle });
     }
   };
+
+  const handleCompanySave = (newCompany: string) => {
+    if (currentPosition && onPositionUpdate) {
+      onPositionUpdate(currentPosition.id, { company: newCompany });
+    }
+  };
   return (
     <header className="h-16 bg-background border-b border-border relative flex items-center px-6">
       {/* Left Section - Current Position */}
       <div className="flex items-center gap-4 flex-1 min-w-0">
         {currentPosition && (
-          <EditableTitle
-            title={currentPosition.title}
-            onSave={handleTitleSave}
-            size="md"
-            autoFocusOnCreate={currentPosition.title === 'New Position'}
-          />
-        )}
-        {currentPosition && (
-          <div className="text-sm text-muted-foreground">
-            {currentPosition.company}
+          <div className="flex flex-col gap-1 min-w-0">
+            <EditableTitle
+              title={currentPosition.title}
+              onSave={handleTitleSave}
+              size="md"
+              autoFocusOnCreate={currentPosition.title === 'New Position'}
+            />
+            <EditableTitle
+              title={currentPosition.company}
+              onSave={handleCompanySave}
+              size="sm"
+              className="text-muted-foreground"
+              placeholder="Company Name"
+              autoFocusOnCreate={currentPosition.company === 'Company Name'}
+            />
           </div>
         )}
       </div>
