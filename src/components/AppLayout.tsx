@@ -52,6 +52,7 @@ const AppLayout: React.FC = () => {
   };
 
   const handlePositionSelect = (positionId: string) => {
+    console.log('Position selected:', positionId, 'Previous position:', currentPositionId);
     setCurrentPositionId(positionId);
     clearSearch(); // Clear search but keep chat histories intact
     agentProcessing.resetProcessing();

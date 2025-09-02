@@ -31,19 +31,23 @@ const MainCanvas: React.FC<MainCanvasProps> = ({
 
   // Reset editing state when position changes
   useEffect(() => {
+    console.log('MainCanvas: Position changed to:', currentPositionId);
+    console.log('Chat history for position:', chatHistoryManager.getChatHistory(currentPositionId));
     setIsEditingPlan(false);
   }, [currentPositionId]);
 
   // Memoize chat history and conversation state to ensure proper updates
-  const chatHistory = useMemo(() => 
-    chatHistoryManager.getChatHistory(currentPositionId), 
-    [chatHistoryManager, currentPositionId]
-  );
+  const chatHistory = useMemo(() => {
+    const history = chatHistoryManager.getChatHistory(currentPositionId);
+    console.log('MainCanvas: Getting chat history for position', currentPositionId, ':', history);
+    return history;
+  }, [chatHistoryManager, currentPositionId]);
   
-  const hasStartedConversation = useMemo(() => 
-    chatHistoryManager.hasStartedConversation(currentPositionId),
-    [chatHistoryManager, currentPositionId]
-  );
+  const hasStartedConversation = useMemo(() => {
+    const hasConversation = chatHistoryManager.hasStartedConversation(currentPositionId);
+    console.log('MainCanvas: Has conversation for position', currentPositionId, ':', hasConversation);
+    return hasConversation;
+  }, [chatHistoryManager, currentPositionId]);
 
   const onSendMessage = async (message: string, audioBlob?: Blob, file?: File) => {
     let positionId = currentPositionId;
