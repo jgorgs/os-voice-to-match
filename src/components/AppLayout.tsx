@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import MainCanvas from './MainCanvas';
 import SimplifiedEmptyState from './SimplifiedEmptyState';
+import PositionOverviewContent from './PositionOverviewContent';
 import { useWorkflowIntegration } from '../hooks/useWorkflowIntegration';
 import { useAgentProcessing } from '../hooks/useAgentProcessing';
 import { useChatHistoryManager } from '../hooks/useChatHistoryManager';
@@ -11,6 +13,7 @@ import { useSearch } from '../hooks/useSearch';
 import { usePositions, Position } from '../hooks/usePositions';
 
 const AppLayout: React.FC = () => {
+  const location = useLocation();
   const [currentPositionId, setCurrentPositionId] = useState<string | null>(null);
   const { positions, isLoading: positionsLoading, createPosition, deletePosition } = usePositions();
 
@@ -81,6 +84,10 @@ const AppLayout: React.FC = () => {
     }
   };
 
+  // Check if we're on the position overview route
+  const isPositionOverview = location.pathname.startsWith('/position/');
+  const overviewPositionId = isPositionOverview ? location.pathname.split('/')[2] : null;
+
   return (
     <div className="flex h-screen bg-background">
       <Sidebar
@@ -106,7 +113,9 @@ const AppLayout: React.FC = () => {
           onSearchClear={clearSearch}
         />
         
-        {currentPositionId ? (
+        {isPositionOverview ? (
+          <PositionOverviewContent positionId={overviewPositionId!} />
+        ) : currentPositionId ? (
           <MainCanvas 
             currentPositionId={currentPositionId}
             chatHistoryManager={chatHistoryManager}
