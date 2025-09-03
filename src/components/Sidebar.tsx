@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import {
   AlertDialog,
@@ -32,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [positionToDelete, setPositionToDelete] = useState<Position | null>(null);
+  const navigate = useNavigate();
 
   const handleDeleteClick = (position: Position) => {
     setPositionToDelete(position);
@@ -105,7 +107,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               }`}
             >
               <div 
-                onClick={() => onPositionSelect(position.id)}
+                onClick={() => navigate(`/position/${position.id}`)}
                 className="cursor-pointer"
               >
                 <div className="space-y-1 pr-8">
