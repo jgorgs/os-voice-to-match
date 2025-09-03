@@ -8,15 +8,11 @@ import { useAgentProcessing } from '../hooks/useAgentProcessing';
 import { useChatHistoryManager } from '../hooks/useChatHistoryManager';
 import { useToast } from '../hooks/use-toast';
 import { useSearch } from '../hooks/useSearch';
-import { Position } from '../types';
+import { usePositions, Position } from '../hooks/usePositions';
 
 const AppLayout: React.FC = () => {
   const [currentPositionId, setCurrentPositionId] = useState<string | null>(null);
-  const [positions, setPositions] = useState<Position[]>([
-    { id: '1', title: 'Senior Software Engineer', company: 'Acme Corp', date: new Date(2024, 0, 15) },
-    { id: '2', title: 'Product Designer', company: 'TechStart Inc', date: new Date(2024, 0, 20) },
-    { id: '3', title: 'Marketing Manager', company: 'Global Solutions Ltd', date: new Date(2024, 0, 22) }
-  ]);
+  const { positions, isLoading: positionsLoading, createPosition, deletePosition } = usePositions();
 
   const chatHistoryManager = useChatHistoryManager();
   const agentProcessing = useAgentProcessing();
@@ -34,24 +30,20 @@ const AppLayout: React.FC = () => {
     clearSearch,
   } = useSearch(positions);
 
-  const handleNewPosition = () => {
-    const newPosition: Position = {
-      id: Date.now().toString(),
-      title: 'New Position',
-      company: 'Company Name',
-      date: new Date()
-    };
-    setPositions(prev => [newPosition, ...prev]);
-    setCurrentPositionId(newPosition.id);
-    clearSearch(); // Clear search instead of history
-    agentProcessing.resetProcessing();
+  const handleNewPosition = async () => {
+    const newPositionId = await createPosition('New Position', 'Company Name');
+    if (newPositionId) {
+      setCurrentPositionId(newPositionId);
+      clearSearch();
+      agentProcessing.resetProcessing();
+      
+      toast({
+        title: "New Position Started",
+        description: "Ready to create your next search plan.",
+      });
+    }
     
-    toast({
-      title: "New Position Started",
-      description: "Ready to create your next search plan.",
-    });
-    
-    return newPosition.id;
+    return newPositionId;
   };
 
   const handlePositionSelect = (positionId: string) => {
@@ -62,34 +54,31 @@ const AppLayout: React.FC = () => {
   };
 
   const handlePositionUpdate = (positionId: string, updates: Partial<Position>) => {
-    setPositions(prev => 
-      prev.map(pos => 
-        pos.id === positionId ? { ...pos, ...updates } : pos
-      )
-    );
+    // This would update the position in the database if needed
+    // For now, we'll rely on the positions hook to manage state
   };
 
-  const handlePositionDelete = (positionId: string) => {
-    // If deleting the current position, switch to another position or null
-    if (currentPositionId === positionId) {
-      const remainingPositions = positions.filter(p => p.id !== positionId);
-      if (remainingPositions.length > 0) {
-        setCurrentPositionId(remainingPositions[0].id);
-      } else {
-        setCurrentPositionId(null);
+  const handlePositionDelete = async (positionId: string) => {
+    const success = await deletePosition(positionId);
+    if (success) {
+      // If deleting the current position, switch to another position or null
+      if (currentPositionId === positionId) {
+        const remainingPositions = positions.filter(p => p.id !== positionId);
+        if (remainingPositions.length > 0) {
+          setCurrentPositionId(remainingPositions[0].id);
+        } else {
+          setCurrentPositionId(null);
+        }
       }
+      
+      // Clear any related chat history for this position
+      chatHistoryManager.clearPositionHistory(positionId);
+      
+      toast({
+        title: "Position Deleted",
+        description: "The position has been removed.",
+      });
     }
-    
-    // Remove the position from the list
-    setPositions(prev => prev.filter(pos => pos.id !== positionId));
-    
-    // Clear any related chat history for this position
-    chatHistoryManager.clearPositionHistory(positionId);
-    
-    toast({
-      title: "Position Deleted",
-      description: "The position has been removed.",
-    });
   };
 
   return (
@@ -123,19 +112,24 @@ const AppLayout: React.FC = () => {
             chatHistoryManager={chatHistoryManager}
             agentProcessing={agentProcessing}
             onPositionUpdate={handlePositionUpdate}
-            onCreateNewPosition={handleNewPosition}
+            onCreateNewPosition={() => {
+              handleNewPosition();
+              return '';
+            }}
           />
         ) : (
           <SimplifiedEmptyState 
             onSendMessage={async (message, audioBlob, file) => {
               // Create a new position and handle the input processing
-              const newPositionId = handleNewPosition();
+              const newPositionId = await handleNewPosition();
               
-              // Process the input through the workflow
-              const result = await handleInput(message, audioBlob, file, newPositionId);
-              
-              if (result.success) {
-                console.log('Successfully processed input for new position:', newPositionId);
+              if (newPositionId) {
+                // Process the input through the workflow
+                const result = await handleInput(message, audioBlob, file, newPositionId);
+                
+                if (result.success) {
+                  console.log('Successfully processed input for new position:', newPositionId);
+                }
               }
             }}
             disabled={isProcessing}
