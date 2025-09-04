@@ -72,7 +72,7 @@ const TopBar: React.FC<TopBarProps> = ({
         )}
         
         {/* View Mode Toggle - Only show when a position is selected */}
-        {currentPosition && viewMode && onViewModeChange && (
+        {currentPosition && onViewModeChange && (
           <div className="flex items-center bg-muted rounded-lg p-1 ml-4">
             <Button
               variant={viewMode === 'chat' ? 'secondary' : 'ghost'}
