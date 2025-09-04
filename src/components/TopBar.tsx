@@ -1,5 +1,5 @@
 import React from 'react';
-import { Plus, Search, User, X } from 'lucide-react';
+import { Plus, Search, User, X, MessageSquare, Users } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import EditableTitle from './EditableTitle';
@@ -18,6 +18,9 @@ interface TopBarProps {
   filteredPositions: Position[];
   onPositionSelect: (positionId: string) => void;
   onSearchClear: () => void;
+  // View mode props
+  viewMode?: 'chat' | 'overview';
+  onViewModeChange?: (mode: 'chat' | 'overview') => void;
 }
 
 const TopBar: React.FC<TopBarProps> = ({ 
@@ -30,7 +33,9 @@ const TopBar: React.FC<TopBarProps> = ({
   isSearchActive,
   filteredPositions,
   onPositionSelect,
-  onSearchClear
+  onSearchClear,
+  viewMode,
+  onViewModeChange
 }) => {
   const handleTitleSave = (newTitle: string) => {
     if (currentPosition && onPositionUpdate) {
@@ -63,6 +68,30 @@ const TopBar: React.FC<TopBarProps> = ({
               placeholder="Company Name"
               autoFocusOnCreate={currentPosition.company === 'Company Name'}
             />
+          </div>
+        )}
+        
+        {/* View Mode Toggle - Only show when a position is selected */}
+        {currentPosition && viewMode && onViewModeChange && (
+          <div className="flex items-center bg-muted rounded-lg p-1 ml-4">
+            <Button
+              variant={viewMode === 'chat' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => onViewModeChange('chat')}
+              className="h-8 px-3 rounded-md"
+            >
+              <MessageSquare size={14} className="mr-2" />
+              Chat
+            </Button>
+            <Button
+              variant={viewMode === 'overview' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => onViewModeChange('overview')}
+              className="h-8 px-3 rounded-md"
+            >
+              <Users size={14} className="mr-2" />
+              Overview
+            </Button>
           </div>
         )}
       </div>

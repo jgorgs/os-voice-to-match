@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
@@ -15,6 +15,7 @@ import { usePositions, Position } from '../hooks/usePositions';
 const AppLayout: React.FC = () => {
   const location = useLocation();
   const [currentPositionId, setCurrentPositionId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'chat' | 'overview'>('chat');
   const { positions, isLoading: positionsLoading, createPosition, deletePosition } = usePositions();
 
   const chatHistoryManager = useChatHistoryManager();
@@ -33,10 +34,38 @@ const AppLayout: React.FC = () => {
     clearSearch,
   } = useSearch(positions);
 
+  // Effect to handle initial viewMode based on position status and route
+  useEffect(() => {
+    const isPositionRoute = location.pathname.startsWith('/position/');
+    if (isPositionRoute) {
+      const routePositionId = location.pathname.split('/')[2];
+      if (routePositionId && routePositionId !== currentPositionId) {
+        setCurrentPositionId(routePositionId);
+        setViewMode('overview'); // Default to overview for direct position routes
+      }
+    }
+  }, [location.pathname, currentPositionId]);
+
+  // Effect to set default viewMode when position changes
+  useEffect(() => {
+    if (currentPositionId) {
+      const position = positions.find(p => p.id === currentPositionId);
+      if (position) {
+        // Set default view based on position status
+        // For now, we'll default to chat for new positions and overview for others
+        const hasConversationStarted = chatHistoryManager.hasStartedConversation(currentPositionId);
+        if (!hasConversationStarted) {
+          setViewMode('chat');
+        }
+      }
+    }
+  }, [currentPositionId, positions, chatHistoryManager]);
+
   const handleNewPosition = async () => {
     const newPositionId = await createPosition('New Position', 'Company Name');
     if (newPositionId) {
       setCurrentPositionId(newPositionId);
+      setViewMode('chat'); // New positions start in chat mode
       clearSearch();
       agentProcessing.resetProcessing();
       
@@ -54,6 +83,10 @@ const AppLayout: React.FC = () => {
     setCurrentPositionId(positionId);
     clearSearch(); // Clear search but keep chat histories intact
     agentProcessing.resetProcessing();
+    
+    // Determine default view mode based on conversation status
+    const hasConversationStarted = chatHistoryManager.hasStartedConversation(positionId);
+    setViewMode(hasConversationStarted ? 'overview' : 'chat');
   };
 
   const handlePositionUpdate = (positionId: string, updates: Partial<Position>) => {
@@ -84,10 +117,6 @@ const AppLayout: React.FC = () => {
     }
   };
 
-  // Check if we're on the position overview route
-  const isPositionOverview = location.pathname.startsWith('/position/');
-  const overviewPositionId = isPositionOverview ? location.pathname.split('/')[2] : null;
-
   return (
     <div className="flex h-screen bg-background">
       <Sidebar
@@ -111,21 +140,25 @@ const AppLayout: React.FC = () => {
           filteredPositions={filteredPositions}
           onPositionSelect={handlePositionSelect}
           onSearchClear={clearSearch}
+          viewMode={currentPositionId ? viewMode : undefined}
+          onViewModeChange={setViewMode}
         />
         
-        {isPositionOverview ? (
-          <PositionOverviewContent positionId={overviewPositionId!} />
-        ) : currentPositionId ? (
-          <MainCanvas 
-            currentPositionId={currentPositionId}
-            chatHistoryManager={chatHistoryManager}
-            agentProcessing={agentProcessing}
-            onPositionUpdate={handlePositionUpdate}
-            onCreateNewPosition={() => {
-              handleNewPosition();
-              return '';
-            }}
-          />
+        {currentPositionId ? (
+          viewMode === 'overview' ? (
+            <PositionOverviewContent positionId={currentPositionId} />
+          ) : (
+            <MainCanvas 
+              currentPositionId={currentPositionId}
+              chatHistoryManager={chatHistoryManager}
+              agentProcessing={agentProcessing}
+              onPositionUpdate={handlePositionUpdate}
+              onCreateNewPosition={() => {
+                handleNewPosition();
+                return '';
+              }}
+            />
+          )
         ) : (
           <SimplifiedEmptyState 
             onSendMessage={async (message, audioBlob, file) => {
