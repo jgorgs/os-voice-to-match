@@ -16,7 +16,7 @@ const AppLayout: React.FC = () => {
   const location = useLocation();
   const [currentPositionId, setCurrentPositionId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'chat' | 'overview'>('chat');
-  const { positions, isLoading: positionsLoading, createPosition, deletePosition } = usePositions();
+  const { positions, isLoading: positionsLoading, createPosition, updatePosition, deletePosition } = usePositions();
 
   const chatHistoryManager = useChatHistoryManager();
   const agentProcessing = useAgentProcessing();
@@ -89,9 +89,8 @@ const AppLayout: React.FC = () => {
     setViewMode(hasConversationStarted ? 'overview' : 'chat');
   };
 
-  const handlePositionUpdate = (positionId: string, updates: Partial<Position>) => {
-    // This would update the position in the database if needed
-    // For now, we'll rely on the positions hook to manage state
+  const handlePositionUpdate = async (positionId: string, updates: Partial<Position>) => {
+    await updatePosition(positionId, updates);
   };
 
   const handlePositionDelete = async (positionId: string) => {

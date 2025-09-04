@@ -73,6 +73,37 @@ export const usePositions = () => {
     }
   }, [loadPositions, toast]);
 
+  const updatePosition = useCallback(async (id: string, updates: Partial<Position>): Promise<boolean> => {
+    try {
+      // Map Position interface fields to database fields
+      const dbUpdates: any = {};
+      if (updates.title !== undefined) dbUpdates.title = updates.title;
+      if (updates.company !== undefined) dbUpdates.company_name = updates.company;
+
+      const { error } = await supabase
+        .from('job_specifications')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Update local state optimistically
+      setPositions(prev => prev.map(pos => 
+        pos.id === id ? { ...pos, ...updates } : pos
+      ));
+
+      return true;
+    } catch (error) {
+      console.error('Error updating position:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update position",
+        variant: "destructive",
+      });
+      return false;
+    }
+  }, [toast]);
+
   const deletePosition = useCallback(async (id: string): Promise<boolean> => {
     try {
       const { error } = await supabase
@@ -105,6 +136,7 @@ export const usePositions = () => {
     isLoading,
     loadPositions,
     createPosition,
+    updatePosition,
     deletePosition,
   };
 };
